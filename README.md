@@ -2,6 +2,9 @@
 
 Overture Maps の places データを使い、世界 5 地区（各約 1km 四方）の店・施設の構成を同じ物差しで比べる Web 地図です。
 
+- 地図：https://akira-motoyoshi.github.io/town-karte/
+- 制作記：https://akira-motoyoshi.github.io/town-karte/article/
+
 ![スクリーンショット](docs/screenshot.jpg)
 
 ## なぜ Overture Maps か

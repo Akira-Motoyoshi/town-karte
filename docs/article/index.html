@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>世界の街カルテ 制作記</title>
+<meta name="description" content="Overture Maps の places データで世界 5 地区を比べる Web 地図を作った過程">
+<style>
+:root{--fg:#1f2328;--muted:#59636e;--line:#d1d9e0;--bg:#fff;--code:#f6f8fa;--link:#0969da}
+@media (prefers-color-scheme:dark){:root{--fg:#e6edf3;--muted:#9198a1;--line:#3d444d;--bg:#0d1117;--code:#151b23;--link:#4493f8}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.85 system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif}
+main{max-width:760px;margin:0 auto;padding:40px 16px 80px}
+h1{font-size:30px;line-height:1.4;margin:0 0 24px}
+h2{font-size:23px;margin:48px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h3{font-size:19px;margin:32px 0 8px}
+a{color:var(--link)}
+code{background:var(--code);padding:1px 6px;border-radius:4px;font-size:.88em}
+figure{margin:20px 0} figure img{width:100%;border:1px solid var(--line);border-radius:8px;display:block}
+figcaption{font-size:13px;color:var(--muted);text-align:center;margin-top:6px}
+table{border-collapse:collapse;width:100%;font-size:15px} th,td{border:1px solid var(--line);padding:6px 10px;text-align:left}
+.back{font-size:14px;margin-bottom:24px;display:inline-block}
+</style>
+</head>
+<body><main>
+<a class="back" href="../">← 地図を開く</a>
+<h1>Overture Maps で「世界の街カルテ」を作った — 同じ SQL で 5 つの街を比べる</h1>
+<p>Overture Maps の places データを使って、世界 5 地区の店や施設の構成を同じ物差しで比べる Web 地図を作りました。LLM（Claude Code）と一緒に、約 4 時間・費用 0 円で、データ取得から GitHub Pages での公開まで進めています。</p>
+<ul>
+<li>公開ページ：<a href="https://akira-motoyoshi.github.io/town-karte/">https://akira-motoyoshi.github.io/town-karte/</a></li>
+<li>リポジトリ：<a href="https://github.com/Akira-Motoyoshi/town-karte">https://github.com/Akira-Motoyoshi/town-karte</a></li>
+</ul>
+<h2>使った技術：Overture Maps</h2>
+<p>Overture Maps は、Overture Maps Foundation が公開している世界規模のオープンな地図データです。OpenStreetMap をはじめ、複数の企業のデータを統合し、約 1 か月ごとにリリースされています。</p>
+<p>今回注目したのは次の 3 つの特性です。</p>
+<ul>
+<li><strong>世界共通のスキーマとカテゴリ体系</strong>：国が違っても、同じ列・同じ分類でデータが入っている</li>
+<li><strong>クラウドに置かれた GeoParquet</strong>：S3 上のファイルを、DuckDB から登録なし・無料で、必要な範囲だけ読める</li>
+<li><strong>places（店・施設）のカテゴリと信頼度</strong>：各 POI に階層付きのカテゴリと <code>confidence</code>（信頼度）が付いている</li>
+</ul>
+<p>補助として、データ処理に DuckDB、地図表示に MapLibre GL JS、背景地図に OpenFreeMap、グラフに Chart.js を使いました。</p>
+<h2>やろうとしたこと</h2>
+<p>「世界中どこでも同じ物差しで測れる」という Overture の特性を、いちばん素直に見せられる題材として「街の比較」を選びました。</p>
+<p>約 1km 四方の 5 地区について、店や施設を 8 つの大分類（飲食、買い物、宿泊、宗教、文化・観光、公共・教育・医療、生活サービス、その他）に分け、構成比を並べます。</p>
+<table>
+<thead>
+<tr>
+<th>地区</th>
+<th>選んだ理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>京都・哲学の道</td>
+<td>寺社の多い観光地</td>
+</tr>
+<tr>
+<td>大阪・難波</td>
+<td>飲食と買い物の繁華街</td>
+</tr>
+<tr>
+<td>パリ・モンマルトル</td>
+<td>欧州の観光地</td>
+</tr>
+<tr>
+<td>バンコク・旧市街</td>
+<td>寺院と宿が多いアジアの観光地</td>
+</tr>
+<tr>
+<td>ニューヨーク・ソーホー</td>
+<td>北米の商業地区</td>
+</tr>
+</tbody>
+</table>
+<p>OpenStreetMap だけで同じことをすると、国や地域ごとにタグの付け方が違うため、分類をそろえる作業が必要になります。Overture ならその手間がほぼありません。</p>
+<h2>作成過程</h2>
+<h3>1. 最新リリースとスキーマを確認する</h3>
+<p>まず S3 のバケットを一覧し、最新リリースが <code>2026-09-23.1</code> であることを確認しました。</p>
+<figure><img alt="Overture のリリース一覧（S3）" loading="lazy" src="01_releases.jpg" /><figcaption>Overture のリリース一覧（S3）</figcaption></figure>
+<p>次に DuckDB で places のスキーマを確認しました。計画段階では <code>categories</code> 列を使う想定でしたが、このリリースでは <code>basic_category</code> と <code>taxonomy</code>（<code>primary</code> と <code>hierarchy</code>）に変わっていました。最初に実データを確認したことで、手戻りを防げました。</p>
+<figure><img alt="places のスキーマ" loading="lazy" src="02_schema.jpg" /><figcaption>places のスキーマ</figcaption></figure>
+<h3>2. 1 地区で試す</h3>
+<p>京都・哲学の道の範囲で、<code>bbox</code> 列による絞り込みと <code>confidence &gt;= 0.6</code> を試しました。190 件が返り、<code>taxonomy.hierarchy</code> に「food_and_drink &gt; restaurant &gt; asian_restaurant &gt; ramen_restaurant」のような階層が入っていることが分かりました。</p>
+<figure><img alt="京都・哲学の道の POI" loading="lazy" src="03_kyoto.jpg" /><figcaption>京都・哲学の道の POI</figcaption></figure>
+<p>ここで 1 つつまずきました。DuckDB の初期設定のまま <code>s3://</code> で読むと、認証情報を探しに行って 5 分以上止まってしまいます。空のキーで匿名アクセスの設定（<code>CREATE SECRET</code>）をすると、約 13 秒で返るようになりました。</p>
+<h3>3. 5 地区を同じ SQL で取得する</h3>
+<p>地区の範囲を <code>areas.json</code> にまとめ、同じ SQL を 5 回当てるスクリプト <code>fetch.py</code> を作りました。世界のデータセット全体をダウンロードせず、必要な範囲だけを読むので、5 地区で約 20 秒です。</p>
+<figure><img alt="5 地区のデータ取得" loading="lazy" src="04_fetch.jpg" /><figcaption>5 地区のデータ取得</figcaption></figure>
+<h3>4. 8 つの大分類にまとめる</h3>
+<p>当初は、数百ある細かいカテゴリを LLM に 8 分類へ振り分けさせる予定でした。しかし <code>taxonomy.hierarchy</code> の 1 段目がすでに「food_and_drink」「shopping」「lodging」のような大分類になっていたため、その 1 段目（宗教だけは 2 段目の <code>place_of_worship</code>）を 8 分類に対応させる方式に変えました。対応表は十数行で済みました。</p>
+<figure><img alt="大分類に集計" loading="lazy" src="05_build.jpg" /><figcaption>大分類に集計</figcaption></figure>
+<h3>5. 地図ページを作り、公開する</h3>
+<p>集計結果を GeoJSON と JSON に書き出し、MapLibre GL JS と Chart.js で静的なページを作りました。サーバーは使わず、GitHub Pages で公開しています。</p>
+<figure><img alt="データの流れ" loading="lazy" src="06_dataflow.png" /><figcaption>データの流れ</figcaption></figure>
+<p>実装は Claude Code に任せ、私は範囲の決定、分類方式の判断、結果の確認を担当しました。リポジトリ作成から Pages の有効化までも GitHub CLI 経由で自動化しています。</p>
+<h2>できたもの</h2>
+<p>地区のボタンを押すと地図がその場所へ移動し、POI が大分類の色で表示されます。左のグラフには、その地区の構成比が出ます。</p>
+<figure><img alt="京都・哲学の道の表示" loading="lazy" src="07_kyoto_page.jpg" /><figcaption>京都・哲学の道の表示</figcaption></figure>
+<p>「全地区を比較」を押すと、5 地区の構成比が積み上げ棒で並びます。</p>
+<figure><img alt="全地区の比較" loading="lazy" src="08_compare.jpg" /><figcaption>全地区の比較</figcaption></figure>
+<figure><img alt="バンコク・旧市街の表示" loading="lazy" src="09_bangkok.jpg" /><figcaption>バンコク・旧市街の表示</figcaption></figure>
+<p>比べてみると、街の性格がはっきり出ました。</p>
+<ul>
+<li><strong>大阪・難波</strong>：飲食が 57% で最多。そのうち酒類を出す店が 666 件あり、全体の約 12% を占める</li>
+<li><strong>バンコク・旧市街</strong>：宿泊が 14% で、他の 4 地区（1〜4%）の 3 倍以上</li>
+<li><strong>ニューヨーク・ソーホー</strong>：生活サービスが 48%。中身は専門サービスやオフィス、不動産が中心で、店の街というより事業所の街だった</li>
+<li><strong>京都・哲学の道</strong>：宗教が 8% で 5 地区中最多</li>
+<li><strong>パリ・モンマルトル</strong>：買い物が 25% で最多</li>
+</ul>
+<h2>Overture の特性がどう反映されているか</h2>
+<ul>
+<li><strong>世界共通スキーマ</strong>：5 地区すべてに同じ SQL、同じ分類表を当てています。国ごとの調整は一切していません。</li>
+<li><strong>カテゴリの階層</strong>：<code>taxonomy.hierarchy</code> の上位をそのまま使えたので、分類作業がほぼ不要になりました。</li>
+<li><strong>クラウドネイティブな配布</strong>：DuckDB で範囲だけ読み、5 地区の取得が約 20 秒。アカウント登録も費用もかかりません。</li>
+<li><strong>信頼度</strong>：<code>confidence</code> で質の低いデータを落としてから集計しています。</li>
+</ul>
+<p>一方で、限界も見えました。</p>
+<ul>
+<li>地区ごとの件数差が大きく、ソーホー 6,219 件に対して哲学の道は 190 件でした。住宅地や山すそを含むことに加え、網羅率の差もあると考えられます。</li>
+<li>大豊神社が <code>christian_place_of_worship</code> に分類されていました。神道を表すカテゴリがなく、日本の神社が誤分類される例があります。</li>
+</ul>
+<p>「同じ物差し」は強力ですが、物差しそのものの偏りも一緒に見える、というのが今回の発見です。</p>
+<h2>使ったもの</h2>
+<ul>
+<li>データ：Overture Maps Foundation places（リリース 2026-09-23.1、CDLA-Permissive-2.0）© Overture Maps Foundation, © OpenStreetMap contributors</li>
+<li>背景地図：OpenFreeMap © OpenMapTiles © OpenStreetMap contributors</li>
+<li>ツール：DuckDB、MapLibre GL JS、Chart.js、GitHub Pages、Claude Code</li>
+</ul>
+</main></body></html>
