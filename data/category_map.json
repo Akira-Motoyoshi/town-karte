@@ -1,0 +1,34 @@
+{
+  "groups": [
+    {"name": "飲食", "color": "#E69F00"},
+    {"name": "買い物", "color": "#56B4E9"},
+    {"name": "宿泊", "color": "#009E73"},
+    {"name": "宗教", "color": "#D55E00"},
+    {"name": "文化・観光", "color": "#CC79A7"},
+    {"name": "公共・教育・医療", "color": "#0072B2"},
+    {"name": "生活サービス", "color": "#B8A200"},
+    {"name": "その他", "color": "#999999"}
+  ],
+  "level2": {
+    "cultural_and_historic/place_of_worship": "宗教",
+    "cultural_and_historic/religious_organization": "宗教",
+    "travel_and_transportation/travel_service": "文化・観光",
+    "arts_and_entertainment/spiritual_advising": "生活サービス"
+  },
+  "level1": {
+    "food_and_drink": "飲食",
+    "shopping": "買い物",
+    "lodging": "宿泊",
+    "arts_and_entertainment": "文化・観光",
+    "cultural_and_historic": "文化・観光",
+    "sports_and_recreation": "文化・観光",
+    "geographic_entities": "文化・観光",
+    "health_care": "公共・教育・医療",
+    "education": "公共・教育・医療",
+    "community_and_government": "公共・教育・医療",
+    "lifestyle_services": "生活サービス",
+    "services_and_business": "生活サービス",
+    "travel_and_transportation": "その他"
+  },
+  "default": "その他"
+}
