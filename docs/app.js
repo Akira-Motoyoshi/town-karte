@@ -154,6 +154,15 @@
 
   const mapReady = new Promise(resolve => {
     map.on('load', () => {
+      // 細い水路（疏水など）が背景に埋もれないよう、水の線だけ濃く太くする
+      (map.getStyle()?.layers || []).forEach(l => {
+        if (l.type === 'line' && l.id.includes('waterway') && !l.id.includes('label')) {
+          try {
+            map.setPaintProperty(l.id, 'line-color', '#4A90D9');
+            map.setPaintProperty(l.id, 'line-width', ['interpolate', ['linear'], ['zoom'], 13, 1.4, 20, 8]);
+          } catch (_) { /* レイヤー構造が違う場合は既定のまま */ }
+        }
+      });
       map.addSource('places', {
         type: 'geojson',
         data: { type: 'FeatureCollection', features: [] },
