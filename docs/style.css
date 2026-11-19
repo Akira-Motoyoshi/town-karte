@@ -135,10 +135,14 @@ button:disabled { opacity: 0.5; cursor: default; }
 button[hidden] { display: none; }
 
 .buttons button {
+  flex: 1 1 30%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 12px;
+  background: var(--ink-2);
+  white-space: nowrap;
 }
 
 .buttons .count {
@@ -149,9 +153,15 @@ button[hidden] { display: none; }
 
 .buttons button.active .count { color: #14100A; }
 
+.mode-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
 .compare, .story {
   width: 100%;
-  margin-bottom: 16px;
   background: var(--ink-2);
 }
 

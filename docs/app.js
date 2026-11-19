@@ -305,6 +305,8 @@
   function setActive(btn) {
     document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    document.querySelectorAll('#areaButtons button').forEach(t =>
+      t.setAttribute('aria-selected', t.classList.contains('active') ? 'true' : 'false'));
   }
 
   async function loadPlaces(area) {
@@ -343,7 +345,7 @@
         </div>
         <p class="karte-finding">所見：${escapeHtml(findings[area.id] || '')}</p>
       </div>`;
-    if (options.scroll) summary.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
     drawAreaChart(area);
     mapLoading.hidden = false;
     map.flyTo({
@@ -473,17 +475,24 @@
     };
   }
 
+  const tabLabels = {
+    kyoto_tetsugaku: '哲学の道',
+    osaka_namba: '難波',
+    paris_montmartre: 'モンマルトル',
+    bangkok_oldtown: 'バンコク旧市街',
+    nyc_soho: 'ソーホー',
+  };
+
   stats.areas.forEach(area => {
     const b = document.createElement('button');
     const name = document.createElement('span');
-    const count = document.createElement('span');
-    name.textContent = area.name;
-    count.className = 'count';
-    count.textContent = area.total.toLocaleString();
-    b.append(name, count);
+    name.textContent = tabLabels[area.id] || area.name;
+    b.append(name);
+    b.title = area.name;
+    b.setAttribute('role', 'tab');
     b.onclick = () => {
       endStory();
-      selectArea(area, b, { scroll: true });
+      selectArea(area, b);
     };
     buttons.appendChild(b);
     area._btn = b;
