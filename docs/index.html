@@ -15,7 +15,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=20261119i">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<link rel="stylesheet" href="style.css?v=20261119j">
 </head>
 <body>
 <div class="app">
@@ -75,7 +76,9 @@
   </div>
 </div>
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>if (!window.maplibregl) document.write('<script src="https:\/\/cdn.jsdelivr.net\/npm\/maplibre-gl@4.7.1\/dist\/maplibre-gl.js"><\/script>');</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="app.js?v=20261119i"></script>
+<script>if (!window.Chart) document.write('<script src="https:\/\/unpkg.com\/chart.js@4.4.1\/dist\/chart.umd.min.js"><\/script>');</script>
+<script src="app.js?v=20261119j"></script>
 </body>
 </html>

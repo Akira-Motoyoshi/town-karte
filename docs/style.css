@@ -398,3 +398,18 @@ a { color: var(--accent); }
 @media (prefers-reduced-motion: reduce) {
   .panel { animation: none; }
 }
+
+.map-fallback {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 15vh 24px 0;
+  color: #93A3B4;
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.chart-fallback {
+  color: #93A3B4;
+  font-size: 13px;
+  padding: 12px 4px;
+}

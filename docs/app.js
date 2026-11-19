@@ -118,18 +118,32 @@
   const panelPadding = () => (window.innerWidth > 760
     ? { left: 402, top: 0, right: 0, bottom: 0 }
     : { left: 0, top: 0, right: 0, bottom: 0 });
-  const map = new maplibregl.Map({
-    container: 'map',
-    style: 'https://tiles.openfreemap.org/styles/liberty',
-    center: first.center,
-    zoom: 15,
-    padding: panelPadding(),
-  });
-  map.addControl(new maplibregl.NavigationControl(), 'top-right');
-  window.addEventListener('resize', () => map.setPadding(panelPadding()));
+  let map = null;
+  try {
+    if (typeof maplibregl === 'undefined' || !maplibregl.supported()) {
+      throw new Error('map unavailable');
+    }
+    map = new maplibregl.Map({
+      container: 'map',
+      style: 'https://tiles.openfreemap.org/styles/liberty',
+      center: first.center,
+      zoom: 15,
+      padding: panelPadding(),
+    });
+    map.addControl(new maplibregl.NavigationControl(), 'top-right');
+    window.addEventListener('resize', () => map.setPadding(panelPadding()));
+  } catch (error) {
+    map = null;
+    document.getElementById('map').innerHTML =
+      '<div class="map-fallback"><p>地図を表示できませんでした。ブラウザがWebGLに対応していないか、ブラウザの保護機能（Braveのシールドなど）に止められている可能性があります。</p>' +
+      '<p>ChromeやSafariで開くか、Braveの場合はアドレスバー右のライオンマークから、このサイトのシールドを下げてみてください。</p>' +
+      '<p>カルテ・比較・クイズなど、地図以外の内容はこのまま使えます。</p></div>';
+  }
 
-  Chart.defaults.color = '#93A3B4';
-  Chart.defaults.borderColor = 'rgba(233,238,243,0.08)';
+  if (typeof Chart !== 'undefined') {
+    Chart.defaults.color = '#93A3B4';
+    Chart.defaults.borderColor = 'rgba(233,238,243,0.08)';
+  }
 
   let chart;
   let popup;
@@ -171,7 +185,7 @@
   const biasContent = document.getElementById('biasContent');
   const biasEnd = document.getElementById('biasEnd');
 
-  const mapReady = new Promise(resolve => {
+  const mapReady = !map ? Promise.resolve() : new Promise(resolve => {
     map.on('load', () => {
       // 細い水路（疏水など）が背景に埋もれないよう、水の線だけ濃く太くする
       (map.getStyle()?.layers || []).forEach(l => {
@@ -246,8 +260,17 @@
     });
   });
 
+  if (map) {
+    setTimeout(() => {
+      if (!map.loaded()) {
+        mapLoading.hidden = false;
+        mapLoading.textContent = '地図の読み込みに失敗しました。通信環境やブラウザの保護機能を確認して、ページを再読み込みしてください。カルテや比較はこのまま使えます。';
+      }
+    }, 12000);
+  }
+
   function updateMapHighlight() {
-    if (!map.getLayer('places')) return;
+    if (!map || !map.getLayer('places')) return;
     const group = hoveredGroup || pinnedGroup;
     const opacity = group
       ? ['case', ['==', ['get', 'group'], group], 1, 0.08]
@@ -321,6 +344,12 @@
   };
 
   function drawCompareChart() {
+    if (typeof Chart === 'undefined') {
+      const wrap = document.getElementById('chartWrap');
+      wrap.style.height = 'auto';
+      wrap.innerHTML = '<p class="chart-fallback">グラフを表示できませんでした。ページを再読み込みしてください。</p>';
+      return;
+    }
     chart?.destroy();
     clearChartHighlight();
     ctx.setAttribute('role', 'img');
@@ -411,8 +440,8 @@
 
     document.getElementById('chartWrap').style.display = 'none';
     document.getElementById('legend').style.display = 'none';
-    mapLoading.hidden = false;
-    map.flyTo({
+    mapLoading.hidden = !map;
+    if (map) map.flyTo({
       center: options.shrine ? [135.79634, 35.0215] : area.center,
       zoom: options.shrine ? 17 : 15,
       duration: 1200,
@@ -422,6 +451,7 @@
       const places = await loadPlaces(area);
       await mapReady;
       if (currentSelection !== selection) return;
+      if (!map) { mapLoading.hidden = true; return; }
       map.getSource('places').setData(places);
 
       if (options.shrine) {
@@ -611,7 +641,7 @@
   storyEnd.onclick = () => {
     endStory();
     selectArea(selectedArea, selectedArea._btn);
-    map.flyTo({ center: selectedArea.center, zoom: 15, duration: 800 });
+    if (map) map.flyTo({ center: selectedArea.center, zoom: 15, duration: 800 });
   };
 
   quizBtn.onclick = () => {
