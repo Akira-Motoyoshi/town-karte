@@ -290,6 +290,29 @@ button[hidden] { display: none; }
   line-height: 1.6;
 }
 
+.karte-note { margin: 2px 0 0; font-size: 11px; color: var(--muted); }
+
+.karte-pitfall {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 111, 165, .35);
+  border-left: 3px solid #FF6FA5;
+  border-radius: 10px;
+  background: rgba(255, 111, 165, .06);
+}
+
+.pitfall-label { font-size: 11px; font-weight: 700; letter-spacing: .06em; color: #FF6FA5; }
+
+.karte-pitfall p { margin: 6px 0 0; font-size: 12px; line-height: 1.7; }
+
+.karte-pitfall button {
+  margin-top: 8px; margin-right: 6px; min-height: 32px; padding: 4px 12px;
+  border-radius: 999px; border: 1px solid rgba(255, 111, 165, .5);
+  background: transparent; color: #FF9DBE; font: inherit; font-size: 12px; cursor: pointer;
+}
+
+.karte-pitfall button:hover { background: rgba(255, 111, 165, .12); }
+
 .error { color: #FF6FA5; font-size: 13px; }
 .chart-wrap { position: relative; height: 300px; }
 

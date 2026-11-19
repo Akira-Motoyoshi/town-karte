@@ -35,8 +35,8 @@ def main():
             counts[g] += 1
             features.append({
                 "type": "Feature",
-                "geometry": {"type": "Point", "coordinates": [round(lon, 6), round(lat, 6)]},
-                "properties": {"id": pid, "area": a["id"], "name": name or "", "category": category or "", "group": g},
+                "geometry": {"type": "Point", "coordinates": [round(lon, 5), round(lat, 5)]},
+                "properties": {"name": name or "", "category": category or "", "group": g},
             })
         (places_out / f"{a['id']}.geojson").write_text(
             json.dumps({"type": "FeatureCollection", "features": features}, ensure_ascii=False, separators=(",", ":")))

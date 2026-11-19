@@ -31,6 +31,14 @@
     nyc_soho: '鋳鉄建築が並ぶ商業地区。店舗やギャラリー、事務所が多い一帯',
   };
 
+  const pitfalls = {
+    kyoto_tetsugaku: '同じ名前の寺「安楽寺」が、少し離れた場所に2件あります。別の建物か、重なった登録かは、データだけでは決められません。',
+    osaka_namba: '「飲食」3,168件の内訳は、和食店1,070件、バー494件が上位です。「飲食」と一括りにしても、中身の顔ぶれは地区で大きく違います。',
+    paris_montmartre: '「宿泊」64件のうち、分類名がホテルなのは47件。残りはサービスアパートメントやB&Bなど、別の名前で登録されています。同じ種類でも、登録の名前はそろいません。',
+    bangkok_oldtown: '分類が空欄のまま登録された施設が58件あります。数え漏れではなく、分類そのものの漏れです。',
+    nyc_soho: '登録6,219件は、京都・哲学の道（190件）の約33倍です。街が33倍大きいわけではなく、登録の手厚さの差がそのまま出ています。',
+  };
+
   const findings = {
     kyoto_tetsugaku: '宗教が8%、5地区でいちばん高い。寺社が集まる地区の姿が、そのまま数字に出ている',
     osaka_namba: '飲食が57%。酒類を出す店が666件。繁華街の性格がはっきり出る',
@@ -46,23 +54,23 @@
     },
     {
       areaId: 'kyoto_tetsugaku',
-      text: '京都・哲学の道。登録は190件、いちばん少ない。なのに宗教の割合は8%で、いちばん高い。寺社の街です。',
+      text: '京都・哲学の道。登録は190件、いちばん少ない。少ないのに、宗教の割合は8%で、いちばん高い。件数と割合で、街の顔は変わります。',
     },
     {
       areaId: 'osaka_namba',
-      text: '大阪・難波。飲食が57%。酒類を出す店だけで666件。食べる街、飲む街です。',
+      text: '大阪・難波。登録は京都の約29倍、5,526件。飲食が57%を占めます。静かな参道とは、同じ国とは思えない差です。',
     },
     {
       areaId: 'paris_montmartre',
-      text: 'パリ・モンマルトル。買い物が25%、5地区でいちばん高い割合です。訪れる人のための店が並びます。',
+      text: 'パリ・モンマルトル。買い物が25%、5地区でいちばん高い割合です。難波の「食べる」に対して、ここは「買う」街。',
     },
     {
       areaId: 'bangkok_oldtown',
-      text: 'バンコク・旧市街。宿泊が14%。ほかの地区の3倍を超えます。寺院を巡る旅の、寝場所の街。',
+      text: 'バンコク・旧市街。宿泊が14%。ほかの地区は1〜4%で、宿がこれだけ目立つのは5地区でここだけです。寺院を巡る旅の拠点になっています。',
     },
     {
       areaId: 'nyc_soho',
-      text: 'ニューヨーク・ソーホー。生活サービスが48%。士業、オフィス、不動産。店の街というより、事業所の街です。',
+      text: 'ニューヨーク・ソーホー。生活サービスが48%。飲食は12%しかありません。難波とほぼ真逆の構成です。',
     },
     {
       areaId: 'kyoto_tetsugaku',
@@ -186,8 +194,10 @@
       map.on('click', 'places', e => {
         popup?.remove();
         const p = e.features[0].properties;
+        const g = selectedArea?.groups.find(x => x.name === p.group);
+        const share = g ? `（この地区の${(g.share * 100).toFixed(0)}%）` : '';
         popup = new maplibregl.Popup().setLngLat(e.lngLat)
-          .setHTML(`<strong>${escapeHtml(p.name || '（名称なし）')}</strong><br>${escapeHtml(p.group)}`)
+          .setHTML(`<strong>${escapeHtml(p.name || '（名称なし）')}</strong><br>${escapeHtml(p.group)}${share}`)
           .addTo(map);
       });
       map.on('mouseenter', 'places', () => map.getCanvas().style.cursor = 'pointer');
@@ -339,14 +349,26 @@
         <strong>${escapeHtml(area.name)}のカルテ</strong>
         <p class="karte-profile">${escapeHtml(profiles[area.id] || '')}</p>
         <div class="karte-row"><span>登録施設</span><span>${area.total.toLocaleString()}件</span></div>
+        <p class="karte-note">件数は登録の手厚さで大きく変わります。比べるのは割合です。</p>
         <div class="karte-bars">
           ${top5.map(barRow).join('')}
           ${restShare >= 0.005 ? `<div class="bar-row"><span class="bar-name">そのほか</span><span class="bar-track"><span class="bar-fill" style="width:${(restShare * 100).toFixed(1)}%;background:#475569"></span></span><span class="bar-val">${(restShare * 100).toFixed(0)}%</span></div>` : ''}
         </div>
         <p class="karte-finding">所見：${escapeHtml(findings[area.id] || '')}</p>
+        <div class="karte-pitfall">
+          <span class="pitfall-label">この数字の落とし穴</span>
+          <p>${escapeHtml(pitfalls[area.id] || '')}</p>
+          ${area.id === 'kyoto_tetsugaku' ? '<button class="karte-shrine" type="button">安楽寺の場所を見る</button>' : ''}
+          <button class="karte-bias-link" type="button">物差しの偏りをもっと見る</button>
+        </div>
       </div>`;
+    const shrineBtn = summary.querySelector('.karte-shrine');
+    if (shrineBtn) shrineBtn.onclick = () => selectArea(area, area._btn, { shrine: true });
+    const biasLink = summary.querySelector('.karte-bias-link');
+    if (biasLink) biasLink.onclick = () => document.getElementById('biasBtn').click();
 
-    drawAreaChart(area);
+    document.getElementById('chartWrap').style.display = 'none';
+    document.getElementById('legend').style.display = 'none';
     mapLoading.hidden = false;
     map.flyTo({
       center: options.shrine ? [135.79634, 35.0215] : area.center,
@@ -370,9 +392,11 @@
           group: '宗教',
         };
         const coords = feature?.geometry?.coordinates || [135.79659, 35.02159];
+        const g2 = area.groups.find(x => x.name === p.group);
+        const share2 = g2 ? `（この地区の${(g2.share * 100).toFixed(0)}%）` : '';
         popup = new maplibregl.Popup()
           .setLngLat(coords)
-          .setHTML(`<strong>${escapeHtml(p.name || '（名称なし）')}</strong><br>${escapeHtml(p.group)}`)
+          .setHTML(`<strong>${escapeHtml(p.name || '（名称なし）')}</strong><br>${escapeHtml(p.group)}${share2}`)
           .addTo(map);
       }
 
@@ -507,6 +531,8 @@
     summary.innerHTML = '<strong>全地区の比較</strong><br>' +
       stats.areas.map(a => `${a.name} ${a.total.toLocaleString()} 件`).join('<br>') +
       `<br>地図は${selectedArea.name}の施設を表示しています`;
+    document.getElementById('chartWrap').style.display = '';
+    document.getElementById('legend').style.display = '';
     drawCompareChart();
   };
 
