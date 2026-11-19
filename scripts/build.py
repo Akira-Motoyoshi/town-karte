@@ -20,11 +20,16 @@ def main():
     group_names = [g["name"] for g in cmap["groups"]]
     con = duckdb.connect()
 
-    features, stats = [], []
+    out = ROOT / "docs/data"
+    places_out = out / "places"
+    places_out.mkdir(parents=True, exist_ok=True)
+
+    stats = []
     for a in areas:
         rows = con.sql(f"""SELECT id, name, category, hierarchy, lon, lat
                            FROM '{ROOT}/data/raw/{a['id']}.parquet'""").fetchall()
         counts = dict.fromkeys(group_names, 0)
+        features = []
         for pid, name, category, hierarchy, lon, lat in rows:
             g = to_group(hierarchy, cmap)
             counts[g] += 1
@@ -33,6 +38,8 @@ def main():
                 "geometry": {"type": "Point", "coordinates": [round(lon, 6), round(lat, 6)]},
                 "properties": {"id": pid, "area": a["id"], "name": name or "", "category": category or "", "group": g},
             })
+        (places_out / f"{a['id']}.geojson").write_text(
+            json.dumps({"type": "FeatureCollection", "features": features}, ensure_ascii=False, separators=(",", ":")))
         total = len(rows)
         stats.append({
             "id": a["id"], "name": a["name"], "center": a["center"], "bbox": a["bbox"], "total": total,
@@ -40,10 +47,6 @@ def main():
                        for g in group_names],
         })
 
-    out = ROOT / "docs/data"
-    out.mkdir(parents=True, exist_ok=True)
-    (out / "places.geojson").write_text(
-        json.dumps({"type": "FeatureCollection", "features": features}, ensure_ascii=False, separators=(",", ":")))
     (out / "stats.json").write_text(json.dumps(
         {"release": release, "groups": cmap["groups"], "areas": stats}, ensure_ascii=False, indent=1))
 

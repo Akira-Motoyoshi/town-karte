@@ -89,5 +89,6 @@ scripts/build.py        大分類に集計し公開用ファイルを出力
 data/category_map.json  分類の対応表と色
 data/raw/               取得結果（parquet）
 docs/                   公開用（GitHub Pages）
+docs/data/places/     地区ごとの施設データ（選んだ地区だけ読み込む）
 docs/lt_outline.md      考察と LT 構成案
 ```
