@@ -23,6 +23,14 @@
   const groupNames = stats.groups.map(g => g.name);
   const first = stats.areas[0];
 
+  const profiles = {
+    kyoto_tetsugaku: '琵琶湖疏水に沿う参道の地区。寺社と住宅が中心の、静かな一帯',
+    osaka_namba: '道頓堀と千日前を抱える繁華街。大阪の中心で、駅と商業施設が集まる',
+    paris_montmartre: 'パリ北部の丘の地区。サクレ・クール寺院があり、観光で訪れる人が多い',
+    bangkok_oldtown: '王宮と寺院のある旧市街。チャオプラヤ川沿いに宿が集まる',
+    nyc_soho: '鋳鉄建築が並ぶ商業地区。店舗やギャラリー、事務所が多い一帯',
+  };
+
   const findings = {
     kyoto_tetsugaku: '宗教が8%、5地区でいちばん高い。寺社が集まる地区の姿が、そのまま数字に出ている',
     osaka_namba: '飲食が57%。酒類を出す店が666件。繁華街の性格がはっきり出る',
@@ -315,14 +323,27 @@
     comparing = false;
     setActive(btn);
     summary.classList.remove('error');
-    const top = [...area.groups].sort((a, b) => b.count - a.count)[0];
+    const sorted = [...area.groups].sort((a, b) => b.count - a.count);
+    const top5 = sorted.slice(0, 5);
+    const restShare = sorted.slice(5).reduce((s, g) => s + g.share, 0);
+    const barRow = g => `
+        <div class="bar-row">
+          <span class="bar-name">${escapeHtml(g.name)}</span>
+          <span class="bar-track"><span class="bar-fill" style="width:${(g.share * 100).toFixed(1)}%;background:${colors[g.name] || '#64748B'}"></span></span>
+          <span class="bar-val">${(g.share * 100).toFixed(0)}%・${g.count.toLocaleString()}件</span>
+        </div>`;
     summary.innerHTML = `
       <div class="karte">
         <strong>${escapeHtml(area.name)}のカルテ</strong>
+        <p class="karte-profile">${escapeHtml(profiles[area.id] || '')}</p>
         <div class="karte-row"><span>登録施設</span><span>${area.total.toLocaleString()}件</span></div>
-        <div class="karte-row"><span>最多の分類</span><span>${escapeHtml(top.name)} ${(top.share * 100).toFixed(0)}%</span></div>
+        <div class="karte-bars">
+          ${top5.map(barRow).join('')}
+          ${restShare >= 0.005 ? `<div class="bar-row"><span class="bar-name">そのほか</span><span class="bar-track"><span class="bar-fill" style="width:${(restShare * 100).toFixed(1)}%;background:#475569"></span></span><span class="bar-val">${(restShare * 100).toFixed(0)}%</span></div>` : ''}
+        </div>
         <p class="karte-finding">所見：${escapeHtml(findings[area.id] || '')}</p>
       </div>`;
+    if (options.scroll) summary.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     drawAreaChart(area);
     mapLoading.hidden = false;
     map.flyTo({
@@ -462,7 +483,7 @@
     b.append(name, count);
     b.onclick = () => {
       endStory();
-      selectArea(area, b);
+      selectArea(area, b, { scroll: true });
     };
     buttons.appendChild(b);
     area._btn = b;

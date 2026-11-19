@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20261119c">
 </head>
 <body>
 <div class="app">
@@ -21,6 +21,7 @@
       <p>難波は飲食が57%<br>バンコク・旧市街は宿泊が14%<br>ソーホーは生活サービスが48%<br><small>登録施設の構成比</small></p>
     </div>
     <div class="buttons" id="areaButtons"></div>
+    <div class="summary" id="summary"></div>
     <button class="compare" id="compareBtn">5地区を比べる</button>
     <button class="story" id="storyBtn">物語で巡る（5つの街と1つの気づき）</button>
     <button class="story" id="quizBtn">予想クイズ（先に予想してみる）</button>
@@ -53,7 +54,6 @@
     </div>
 
     <p class="lead"><a href="article/">制作記（どう作ったか）を読む</a></p>
-    <div class="summary" id="summary"></div>
     <div class="chart-wrap" id="chartWrap"><canvas id="chart"></canvas></div>
     <ul class="legend" id="legend"></ul>
     <footer class="attribution" id="attribution"></footer>
@@ -65,6 +65,6 @@
 </div>
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="app.js"></script>
+<script src="app.js?v=20261119c"></script>
 </body>
 </html>

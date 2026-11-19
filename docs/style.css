@@ -242,6 +242,36 @@ button[hidden] { display: none; }
   border-bottom: 1px solid var(--line);
 }
 
+.karte-profile {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--paper);
+}
+
+.karte-bars { margin-top: 10px; display: grid; gap: 6px; }
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 104px 1fr 92px;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.bar-name { color: var(--paper); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-val { text-align: right; color: var(--paper); white-space: nowrap; }
+
+.bar-track {
+  display: block;
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.bar-fill { display: block; height: 100%; border-radius: 5px; }
+
 .karte-finding {
   margin: 10px 0 0;
   padding-left: 10px;
