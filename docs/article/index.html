@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>世界の街カルテ 制作記</title>
+<title>同じ物差しで5つの街を測ったら、物差しの偏りが見えた —『街のカルテ』制作記</title>
 <meta name="description" content="Overture Maps の places データで世界 5 地区を比べる Web 地図を作った過程">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,7 +27,7 @@ table{border-collapse:collapse;width:100%;font-size:15px} th,td{border:1px solid
 </head>
 <body><main>
 <a class="back" href="../">← 地図を開く</a>
-<h1>Overture Maps で「世界の街カルテ」を作った — 同じ SQL で 5 つの街を比べる</h1>
+<h1>同じ物差しで5つの街を測ったら、物差しの偏りが見えた —『街のカルテ』制作記</h1>
 <p>Overture Maps の places データを使って、世界 5 地区の店や施設の構成を同じ物差しで比べる Web 地図を作りました。LLM（Claude Code）と一緒に、約 4 時間・費用 0 円で、データ取得から GitHub Pages での公開まで進めています。</p>
 <ul>
 <li>公開ページ：<a href="https://akira-motoyoshi.github.io/town-karte/">https://akira-motoyoshi.github.io/town-karte/</a></li>
@@ -98,10 +98,10 @@ table{border-collapse:collapse;width:100%;font-size:15px} th,td{border:1px solid
 <p>実装は Claude Code に任せ、私は範囲の決定、分類方式の判断、結果の確認を担当しました。公開前に、元データから分類を再集計し、5 地区 × 8 分類の全件が公開データと一致することを確認しました。リポジトリ作成から Pages の有効化までも GitHub CLI 経由で自動化しています。</p>
 <h2>できたもの</h2>
 <p>地区のボタンを押すと地図がその場所へ移動し、POI が大分類の色で表示されます。左のグラフには、その地区の構成比が出ます。</p>
-<figure><img alt="京都・哲学の道の表示" loading="lazy" src="07_kyoto_page.jpg" /><figcaption>京都・哲学の道の表示</figcaption></figure>
+<figure><img alt="京都・哲学の道の表示" loading="lazy" src="07_kyoto_page.jpg" /><figcaption>京都・哲学の道の表示（画面は開発中のもの）</figcaption></figure>
 <p>「全地区を比較」を押すと、5 地区の構成比が積み上げ棒で並びます。</p>
-<figure><img alt="全地区の比較" loading="lazy" src="08_compare.jpg" /><figcaption>全地区の比較</figcaption></figure>
-<figure><img alt="バンコク・旧市街の表示" loading="lazy" src="09_bangkok.jpg" /><figcaption>バンコク・旧市街の表示</figcaption></figure>
+<figure><img alt="全地区の比較" loading="lazy" src="08_compare.jpg" /><figcaption>全地区の比較（画面は開発中のもの）</figcaption></figure>
+<figure><img alt="バンコク・旧市街の表示" loading="lazy" src="09_bangkok.jpg" /><figcaption>バンコク・旧市街の表示（画面は開発中のもの）</figcaption></figure>
 <p>比べてみると、街の性格がはっきり出ました。以下はすべて登録施設の構成比で、実際の店舗数や活動量そのものではありません。</p>
 <ul>
 <li><strong>大阪・難波</strong>：飲食が 57% で最多。そのうち酒類を出す店が 666 件あり、全体の約 12% を占める</li>
@@ -133,4 +133,5 @@ table{border-collapse:collapse;width:100%;font-size:15px} th,td{border:1px solid
 <li>背景地図：OpenFreeMap © OpenMapTiles © OpenStreetMap contributors</li>
 <li>ツール：DuckDB、MapLibre GL JS、Chart.js、GitHub Pages、Claude Code</li>
 </ul>
+<p><a href="../">サイト本体「街のカルテ」へ戻る</a></p>
 </main></body></html>

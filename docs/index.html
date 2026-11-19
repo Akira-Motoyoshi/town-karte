@@ -9,19 +9,20 @@
 <meta property="og:description" content="世界の5地区を、同じ物差しで測る。街の個性と、データの偏りの両方を見せる作品。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://akira-motoyoshi.github.io/town-karte/">
-<meta property="og:image" content="https://akira-motoyoshi.github.io/town-karte/article/10_live.jpg">
+<meta property="og:image" content="https://akira-motoyoshi.github.io/town-karte/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=20261119f">
+<link rel="stylesheet" href="style.css?v=20261119g">
 </head>
 <body>
 <div class="app">
   <aside class="panel">
     <h1>街のカルテ</h1>
-    <p class="sub">town-karte — 世界の街を、同じ物差しで測る</p>
-    <p class="lead">世界の5つの街を、同じ分類で数えた記録です。タブで街を切り替えると、その街のカルテが出ます。</p>
+    <p class="sub">同じ物差しで測ると、街と物差しの両方が見える</p>
+    <p class="lead">世界の5つの街を、同じ分類で数えました。街の個性が見えてきます。ただし、その物差し自体にも偏りがあります。</p>
     <div class="buttons" id="areaButtons" role="tablist" aria-label="地区の切り替え"></div>
     <div class="summary" id="summary"></div>
     <div class="mode-row">
@@ -33,6 +34,11 @@
 
     <div class="story-box" id="storyBox" hidden>
       <p id="storyText"></p>
+      <div class="story-outro" id="storyOutro" hidden>
+        <p>物差しをそろえると街が見えます。でも、物差しの偏りも一緒についてきます。</p>
+        <button id="storyToBias" type="button">物差しの偏りを見る</button>
+        <a class="story-article" href="article/">制作記を読む</a>
+      </div>
       <div class="story-controls">
         <span id="storyProgress"></span>
         <span class="story-dots" id="storyDots"></span>
@@ -43,6 +49,7 @@
     </div>
 
     <div class="story-box" id="quizBox" hidden>
+      <p class="quiz-progress" id="quizProgress"></p>
       <p id="quizQuestion"></p>
       <div class="quiz-choices" id="quizChoices"></div>
       <p id="quizResult" aria-live="polite"></p>
@@ -69,6 +76,6 @@
 </div>
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="app.js?v=20261119f"></script>
+<script src="app.js?v=20261119g"></script>
 </body>
 </html>

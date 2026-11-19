@@ -50,7 +50,7 @@
   const storySteps = [
     {
       areaId: 'kyoto_tetsugaku',
-      text: '5つの街を、同じ物差しで測ります。順に巡って、最後にひとつ、引っかかるものを見せます。',
+      text: '5つの街を順に巡ります。最後に、データが間違っているように見える場所へ案内します。',
     },
     {
       areaId: 'kyoto_tetsugaku',
@@ -163,6 +163,9 @@
   const quizResult = document.getElementById('quizResult');
   const quizNext = document.getElementById('quizNext');
   const quizEnd = document.getElementById('quizEnd');
+  const storyOutro = document.getElementById('storyOutro');
+  const storyToBias = document.getElementById('storyToBias');
+  const quizProgress = document.getElementById('quizProgress');
   const biasBtn = document.getElementById('biasBtn');
   const biasBox = document.getElementById('biasBox');
   const biasContent = document.getElementById('biasContent');
@@ -182,20 +185,53 @@
       map.addSource('places', {
         type: 'geojson',
         data: { type: 'FeatureCollection', features: [] },
+        cluster: true,
+        clusterMaxZoom: 16,
+        clusterRadius: 45,
+      });
+      map.addLayer({
+        id: 'clusters', type: 'circle', source: 'places',
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-radius': ['step', ['get', 'point_count'], 13, 100, 17, 1000, 21],
+          'circle-color': '#141E29',
+          'circle-stroke-color': '#FFB454', 'circle-stroke-width': 1.5,
+          'circle-opacity': 0.92,
+        },
+      });
+      map.addLayer({
+        id: 'cluster-count', type: 'symbol', source: 'places',
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': ['get', 'point_count_abbreviated'],
+          'text-font': ['Noto Sans Regular'],
+          'text-size': 11,
+        },
+        paint: { 'text-color': '#E9EEF3' },
       });
       map.addLayer({
         id: 'places', type: 'circle', source: 'places',
+        filter: ['!', ['has', 'point_count']],
         paint: {
           'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 2, 16, 5, 18, 8],
           'circle-color': ['match', ['get', 'group'], ...groupNames.flatMap(n => [n, colors[n]]), '#999'],
           'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 1.2,
         },
       });
+      map.on('click', 'clusters', e => {
+        const clusterId = e.features[0].properties.cluster_id;
+        map.getSource('places').getClusterExpansionZoom(clusterId, (err, zoom) => {
+          if (err) return;
+          map.easeTo({ center: e.lngLat, zoom });
+        });
+      });
+      map.on('mouseenter', 'clusters', () => map.getCanvas().style.cursor = 'pointer');
+      map.on('mouseleave', 'clusters', () => map.getCanvas().style.cursor = '');
       map.on('click', 'places', e => {
         popup?.remove();
         const p = e.features[0].properties;
         const g = selectedArea?.groups.find(x => x.name === p.group);
-        const share = g ? `（この地区の${(g.share * 100).toFixed(0)}%）` : '';
+        const share = g ? `（登録施設全体の${(g.share * 100).toFixed(0)}%）` : '';
         popup = new maplibregl.Popup().setLngLat(e.lngLat)
           .setHTML(`<strong>${escapeHtml(p.name || '（名称なし）')}</strong><br>${escapeHtml(p.group)}${share}`)
           .addTo(map);
@@ -252,35 +288,6 @@
     };
   }
 
-  function drawAreaChart(area) {
-    chart?.destroy();
-    clearChartHighlight();
-    const top = [...area.groups].sort((a, b) => b.count - a.count)[0];
-    ctx.setAttribute('role', 'img');
-    ctx.setAttribute('aria-label', `${area.name}の施設の構成比。総数${area.total.toLocaleString()}件、最多は${top.name}${(top.share * 100).toFixed(0)}%`);
-    document.getElementById('chartWrap').style.height = '300px';
-    chart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: groupNames,
-        datasets: [{
-          data: area.groups.map(g => g.share * 100),
-          backgroundColor: groupNames.map(n => colors[n]),
-          counts: area.groups.map(g => g.count),
-        }],
-      },
-      options: {
-        indexAxis: 'y', maintainAspectRatio: false, animation: false, interaction: { mode: 'nearest', intersect: true },
-        ...chartInteraction(false),
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: c => `${c.raw.toFixed(1)}%（${c.dataset.counts[c.dataIndex]} 件）` } },
-        },
-        scales: { x: { min: 0, ticks: { callback: v => v + '%' } } },
-      },
-    });
-  }
-
   function drawCompareChart() {
     chart?.destroy();
     clearChartHighlight();
@@ -289,6 +296,7 @@
     document.getElementById('chartWrap').style.height = '340px';
     chart = new Chart(ctx, {
       type: 'bar',
+      plugins: [segmentLabelPlugin],
       data: {
         labels: stats.areas.map(a => a.name),
         datasets: groupNames.map((n, i) => ({
@@ -393,7 +401,7 @@
         };
         const coords = feature?.geometry?.coordinates || [135.79659, 35.02159];
         const g2 = area.groups.find(x => x.name === p.group);
-        const share2 = g2 ? `（この地区の${(g2.share * 100).toFixed(0)}%）` : '';
+        const share2 = g2 ? `（登録施設全体の${(g2.share * 100).toFixed(0)}%）` : '';
         popup = new maplibregl.Popup()
           .setLngLat(coords)
           .setHTML(`<strong>${escapeHtml(p.name || '（名称なし）')}</strong><br>${escapeHtml(p.group)}${share2}`)
@@ -435,12 +443,14 @@
     }));
     storyBack.disabled = storyIndex === 0;
     storyNext.disabled = storyIndex === storySteps.length - 1;
+    storyOutro.hidden = storyIndex !== storySteps.length - 1;
     selectArea(area, area._btn, { shrine: step.shrine });
   }
 
   function showQuizQuestion() {
     const question = quizQuestions[quizIndex];
     quizAnswered = false;
+    quizProgress.textContent = `${quizIndex + 1}問目（全${quizQuestions.length}問）`;
     quizQuestion.textContent = question.question;
     quizResult.textContent = '';
     quizNext.hidden = true;
@@ -491,7 +501,8 @@
       <button id="biasShrine">安楽寺の場所を見る</button>
       <h3>抽出の条件</h3>
       <p>施設が地区の四角形に入るかは、施設の範囲の左下の角で判定している。使うのは信頼度0.6以上。分類は Overture Maps の世界共通の分類表に沿い、例外の対応づけは制作記に書いた。</p>
-      <p>物差しをそろえるのは強力だ。ただ、物差し自体の偏りも一緒についてくる。両方を見て街を読むのが、この作品の立場です。</p>`;
+      <p>物差しをそろえるのは強力だ。ただ、物差し自体の偏りも一緒についてくる。両方を見て街を読むのが、この作品の立場です。</p>
+      <p>作り方と検証の記録は<a href="article/">制作記</a>にまとめています。</p>`;
 
     document.getElementById('biasShrine').onclick = () => {
       const area = stats.areas.find(a => a.id === 'kyoto_tetsugaku');
@@ -529,6 +540,7 @@
     setActive(compareBtn);
     summary.classList.remove('error');
     summary.innerHTML = '<strong>全地区の比較</strong><br>' +
+      '割合で比べてください。件数は登録の手厚さで変わるので、比べる対象ではありません。<br>' +
       stats.areas.map(a => `${a.name} ${a.total.toLocaleString()} 件`).join('<br>') +
       `<br>地図は${selectedArea.name}の施設を表示しています`;
     document.getElementById('chartWrap').style.display = '';
@@ -555,6 +567,11 @@
     if (!storyActive || storyIndex === storySteps.length - 1) return;
     storyIndex++;
     showStoryStep();
+  };
+
+  storyToBias.onclick = () => {
+    endStory();
+    biasBtn.click();
   };
 
   storyEnd.onclick = () => {
