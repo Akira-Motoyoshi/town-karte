@@ -2,35 +2,35 @@
   "groups": [
     {
       "name": "飲食",
-      "color": "#FF8C42"
+      "color": "#E8590C"
     },
     {
       "name": "買い物",
-      "color": "#FFD23F"
+      "color": "#D97706"
     },
     {
       "name": "宿泊",
-      "color": "#3EC1F3"
+      "color": "#0284C7"
     },
     {
       "name": "宗教",
-      "color": "#FF6FA5"
+      "color": "#DB2777"
     },
     {
       "name": "文化・観光",
-      "color": "#B388FF"
+      "color": "#7C3AED"
     },
     {
       "name": "公共・教育・医療",
-      "color": "#4FE3C1"
+      "color": "#0D9488"
     },
     {
       "name": "生活サービス",
-      "color": "#7BD88F"
+      "color": "#16A34A"
     },
     {
       "name": "その他",
-      "color": "#8A97A5"
+      "color": "#64748B"
     }
   ],
   "level2": {

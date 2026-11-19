@@ -58,7 +58,7 @@
     },
     {
       areaId: 'kyoto_tetsugaku',
-      text: '最後は京都に戻ります。哲学の道の大豊神社。日本の神社です。でもデータの中では『キリスト教の礼拝施設』でした。',
+      text: '最後は京都に戻ります。哲学の道の安楽寺。データの中では、同じ名前の寺が、少し離れた場所にもう1件あります。別の建物か、重なった登録か。データだけでは決められません。',
       shrine: true,
     },
     {
@@ -99,13 +99,18 @@
     },
   ];
 
+  const panelPadding = () => (window.innerWidth > 760
+    ? { left: 402, top: 0, right: 0, bottom: 0 }
+    : { left: 0, top: 0, right: 0, bottom: 0 });
   const map = new maplibregl.Map({
     container: 'map',
-    style: 'https://tiles.openfreemap.org/styles/dark',
+    style: 'https://tiles.openfreemap.org/styles/positron',
     center: first.center,
     zoom: 15,
+    padding: panelPadding(),
   });
   map.addControl(new maplibregl.NavigationControl(), 'top-right');
+  window.addEventListener('resize', () => map.setPadding(panelPadding()));
 
   Chart.defaults.color = '#93A3B4';
   Chart.defaults.borderColor = 'rgba(233,238,243,0.08)';
@@ -158,14 +163,14 @@
         paint: {
           'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 2, 16, 5, 18, 8],
           'circle-color': ['match', ['get', 'group'], ...groupNames.flatMap(n => [n, colors[n]]), '#999'],
-          'circle-stroke-color': '#0C1218', 'circle-stroke-width': 1.2,
+          'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 1.2,
         },
       });
       map.on('click', 'places', e => {
         popup?.remove();
         const p = e.features[0].properties;
         popup = new maplibregl.Popup().setLngLat(e.lngLat)
-          .setHTML(`<strong>${escapeHtml(p.name || '（名称なし）')}</strong><br>${escapeHtml(p.group)} / ${escapeHtml(p.category)}`)
+          .setHTML(`<strong>${escapeHtml(p.name || '（名称なし）')}</strong><br>${escapeHtml(p.group)}`)
           .addTo(map);
       });
       map.on('mouseenter', 'places', () => map.getCanvas().style.cursor = 'pointer');
@@ -312,12 +317,9 @@
     drawAreaChart(area);
     mapLoading.hidden = false;
     map.flyTo({
-      center: options.shrine ? [135.794361, 35.018761] : area.center,
+      center: options.shrine ? [135.79634, 35.0215] : area.center,
       zoom: options.shrine ? 17 : 15,
       duration: 1200,
-      ...(options.shrine && window.innerWidth > 760
-        ? { padding: { left: 410, top: 0, right: 0, bottom: 0 } }
-        : {}),
     });
 
     try {
@@ -329,16 +331,16 @@
       if (options.shrine) {
         const feature = places.features.find(f => {
           const p = f.properties || {};
-          return p.name === '大豊神社 御旅所';
+          return p.name === '安楽寺';
         });
         const p = feature?.properties || {
-          name: '大豊神社 御旅所',
+          name: '安楽寺',
           group: '宗教',
-          category: 'christian_place_of_worship',
         };
+        const coords = feature?.geometry?.coordinates || [135.79659, 35.02159];
         popup = new maplibregl.Popup()
-          .setLngLat([135.794361, 35.018761])
-          .setHTML(`<strong>${escapeHtml(p.name || '（名称なし）')}</strong><br>${escapeHtml(p.group)} / ${escapeHtml(p.category)}`)
+          .setLngLat(coords)
+          .setHTML(`<strong>${escapeHtml(p.name || '（名称なし）')}</strong><br>${escapeHtml(p.group)}`)
           .addTo(map);
       }
 
@@ -429,8 +431,8 @@
       <h3>登録数の偏り</h3>
       <p>登録施設は、哲学の道の190件からソーホーの6,219件まで、約33倍の開きがある。件数の多さは街の規模だけでは決まらない。地図データへの登録の手厚さも映している。だから比べるときは割合（%）を使う。</p>
       <h3>分類の偏り（実例）</h3>
-      <p>世界共通の分類は、日本の施設に合わないことがある。哲学の道の「宗教」15件のうち少なくとも3件、大豊神社 御旅所、Otoyo Shrine、霊鑑寺は、神社と寺なのに「キリスト教の礼拝施設（christian_place_of_worship）」に入っていた。</p>
-      <button id="biasShrine">大豊神社の場所を見る</button>
+      <p>世界共通の分類は、日本の施設の種類分けと合わないことがある。登録のされ方も一様ではない。哲学の道では、同じ名前の寺「安楽寺」が、少し離れた場所に2件ある。別の建物か、重なった登録かは、データだけでは決められない。名前の表記も、日本語と英語が混ざっている。</p>
+      <button id="biasShrine">安楽寺の場所を見る</button>
       <h3>抽出の条件</h3>
       <p>施設が地区の四角形に入るかは、施設の範囲の左下の角で判定している。使うのは信頼度0.6以上。分類は Overture Maps の世界共通の分類表に沿い、例外の対応づけは制作記に書いた。</p>
       <p>物差しをそろえるのは強力だ。ただ、物差し自体の偏りも一緒についてくる。両方を見て街を読むのが、この作品の立場です。</p>`;

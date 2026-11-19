@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
-:root{--fg:#E9EEF3;--muted:#93A3B4;--line:rgba(233,238,243,0.14);--bg:#0C1218;--code:#141E29;--link:#FFB454}
-@media (prefers-color-scheme:light){:root{--fg:#1f2328;--muted:#59636e;--line:#d1d9e0;--bg:#fff;--code:#f6f8fa;--link:#0969da}}
+:root{--fg:#1f2328;--muted:#59636e;--line:#d1d9e0;--bg:#fff;--code:#f6f8fa;--link:#0969da}
+@media (prefers-color-scheme:dark){:root{--fg:#E9EEF3;--muted:#93A3B4;--line:rgba(233,238,243,0.14);--bg:#0C1218;--code:#141E29;--link:#FFB454}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:500 17px/1.85 "Zen Kaku Gothic New",system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;font-variant-numeric:tabular-nums}
 main{max-width:760px;margin:0 auto;padding:40px 16px 80px}
@@ -120,11 +120,11 @@ table{border-collapse:collapse;width:100%;font-size:15px} th,td{border:1px solid
 <p>一方で、限界も見えました。</p>
 <ul>
 <li>地区ごとの件数差が大きく、ソーホー 6,219 件に対して哲学の道は 190 件でした。住宅地や山すそを含むことに加え、網羅率の差もあると考えられます。</li>
-<li>大豊神社が <code>christian_place_of_worship</code> に分類されていました。神道を表すカテゴリがなく、日本の神社が誤分類される例があります。</li>
+<li>同じ名前の寺「安楽寺」が、少し離れた場所に2件登録されていました。別の建物か重複かは、データだけでは判断できません。登録のされ方も一様ではない例です。</li>
 </ul>
 <p>「同じ物差し」は強力ですが、物差しそのものの偏りも一緒に見える、というのが今回の発見です。</p>
 <h2>追記：体験の設計（2026年11月19日）</h2>
-<p>公開後、作品を『データを見るもの』から『体験するもの』に作り替えた。地区ごとの要約は、街の診断書という見立てで『カルテ』の形にし、所見を添えた。発見を順に巡る『物語モード』では、最後に京都の神社がキリスト教の礼拝施設に分類されていた実例を、地図のポップアップでそのまま見せる。グラフのバーに触れると、その分類の点だけが地図に残る連動も入れた。</p>
+<p>公開後、作品を『データを見るもの』から『体験するもの』に作り替えた。地区ごとの要約は、街の診断書という見立てで『カルテ』の形にし、所見を添えた。発見を順に巡る『物語モード』では、最後に京都の同じ名前の寺が2件登録されている実例へ、地図で案内する。グラフのバーに触れると、その分類の点だけが地図に残る連動も入れた。</p>
 <p>『予想クイズ』は、先に予想してから答えを見る形にした。『データの見方』のパネルでは、登録数の偏りや分類の偏り、抽出の条件を、作品の一部として開示している。</p>
 <p>作り替えの検収では、モンマルトルの所見に『買い物が最も多い』という誤りが見つかった。実データでは飲食が34%で最も多く、買い物25%は『5地区の中で最も高い割合』が正しい表現だった。実データと照合して修正した。</p>
 <h2>使ったもの</h2>
