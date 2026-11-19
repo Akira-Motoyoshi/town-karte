@@ -104,7 +104,7 @@
     : { left: 0, top: 0, right: 0, bottom: 0 });
   const map = new maplibregl.Map({
     container: 'map',
-    style: 'https://tiles.openfreemap.org/styles/positron',
+    style: 'https://tiles.openfreemap.org/styles/liberty',
     center: first.center,
     zoom: 15,
     padding: panelPadding(),
