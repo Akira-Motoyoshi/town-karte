@@ -14,12 +14,16 @@ button:hover { background: #f3f4f6; }
 button.active { background: #1f2328; color: #fff; border-color: #1f2328; font-weight: bold; }
 button:focus-visible { outline: 2px solid #0969da; outline-offset: 2px; }
 button:disabled { opacity: 0.5; cursor: default; }
+button[hidden] { display: none; }
 .compare, .story { width: 100%; margin-bottom: 16px; }
 .story-box { padding: 12px; margin-bottom: 16px; border: 1px solid #ddd; border-radius: 6px; background: #f8f9fa; font-size: 13px; line-height: 1.6; }
 .story-box[hidden] { display: none; }
 .story-box p { margin: 0 0 10px; }
+.story-box h2 { font-size: 16px; margin: 0 0 10px; }
+.story-box h3 { font-size: 14px; margin: 16px 0 6px; }
 .story-controls { display: flex; align-items: center; gap: 6px; }
 .story-controls span { margin-right: auto; }
+.quiz-choices { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .summary { font-size: 14px; margin-bottom: 8px; }
 .summary strong { font-size: 18px; }
 .karte { border: 1px solid #ddd; border-radius: 6px; padding: 12px; }

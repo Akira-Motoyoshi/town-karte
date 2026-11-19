@@ -19,6 +19,9 @@
     <div class="buttons" id="areaButtons"></div>
     <button class="compare" id="compareBtn">全地区を比較</button>
     <button class="story" id="storyBtn">物語モード：5つの街と1つの気づき</button>
+    <button class="story" id="quizBtn">予想クイズ：先に予想してみる</button>
+    <button class="story" id="biasBtn">データの見方：物差しの偏り</button>
+
     <div class="story-box" id="storyBox" hidden>
       <p id="storyText"></p>
       <div class="story-controls">
@@ -28,6 +31,22 @@
         <button id="storyEnd">おわる</button>
       </div>
     </div>
+
+    <div class="story-box" id="quizBox" hidden>
+      <p id="quizQuestion"></p>
+      <div class="quiz-choices" id="quizChoices"></div>
+      <p id="quizResult" aria-live="polite"></p>
+      <div class="story-controls">
+        <button id="quizNext" hidden>次の問題</button>
+        <button id="quizEnd">おわる</button>
+      </div>
+    </div>
+
+    <div class="story-box" id="biasBox" hidden>
+      <div id="biasContent"></div>
+      <button id="biasEnd">閉じる</button>
+    </div>
+
     <p class="lead"><a href="article/">制作記（どう作ったか）を読む →</a></p>
     <div class="summary" id="summary"></div>
     <div class="chart-wrap" id="chartWrap"><canvas id="chart"></canvas></div>

@@ -67,6 +67,38 @@
     },
   ];
 
+  const quizAreas = [
+    '京都・哲学の道',
+    '大阪・難波',
+    'パリ・モンマルトル',
+    'バンコク・旧市街',
+    'ニューヨーク・ソーホー',
+  ];
+
+  const quizQuestions = [
+    {
+      question: '大阪・難波で、いちばん多いのはどの分類でしょう？',
+      choices: ['飲食', '買い物', '宿泊', '生活サービス'],
+      answer: '飲食',
+      result: '正解は飲食、57%です。2位の買い物（15%）を大きく引き離しています。',
+      areaId: 'osaka_namba',
+    },
+    {
+      question: '宿泊の割合が最も高いのは、どの地区でしょう？',
+      choices: quizAreas,
+      answer: 'バンコク・旧市街',
+      result: '正解はバンコク・旧市街、14%です。他の地区は1〜4%で、寺院を巡る旅の宿が集まる地区です。',
+      areaId: 'bangkok_oldtown',
+    },
+    {
+      question: '登録施設の数が最も少ないのは、どの地区でしょう？',
+      choices: quizAreas,
+      answer: '京都・哲学の道',
+      result: '正解は京都・哲学の道、190件です。最も多いソーホー（6,219件）の約33分の1。登録のされ方にも地区差があります。',
+      areaId: 'kyoto_tetsugaku',
+    },
+  ];
+
   const map = new maplibregl.Map({
     container: 'map',
     style: 'https://tiles.openfreemap.org/styles/liberty',
@@ -83,6 +115,9 @@
   let storyActive = false;
   let storyIndex = 0;
   let storyVersion = 0;
+  let quizIndex = 0;
+  let quizScore = 0;
+  let quizAnswered = false;
   let pinnedGroup = null;
   let hoveredGroup = null;
   const placesCache = {};
@@ -96,6 +131,17 @@
   const storyBack = document.getElementById('storyBack');
   const storyNext = document.getElementById('storyNext');
   const storyEnd = document.getElementById('storyEnd');
+  const quizBtn = document.getElementById('quizBtn');
+  const quizBox = document.getElementById('quizBox');
+  const quizQuestion = document.getElementById('quizQuestion');
+  const quizChoices = document.getElementById('quizChoices');
+  const quizResult = document.getElementById('quizResult');
+  const quizNext = document.getElementById('quizNext');
+  const quizEnd = document.getElementById('quizEnd');
+  const biasBtn = document.getElementById('biasBtn');
+  const biasBox = document.getElementById('biasBox');
+  const biasContent = document.getElementById('biasContent');
+  const biasEnd = document.getElementById('biasEnd');
 
   const mapReady = new Promise(resolve => {
     map.on('load', () => {
@@ -303,6 +349,14 @@
     storyBox.hidden = true;
   }
 
+  function endQuiz() {
+    quizBox.hidden = true;
+  }
+
+  function endBias() {
+    biasBox.hidden = true;
+  }
+
   function showStoryStep() {
     const step = storySteps[storyIndex];
     const area = stats.areas.find(a => a.id === step.areaId);
@@ -312,6 +366,64 @@
     storyBack.disabled = storyIndex === 0;
     storyNext.disabled = storyIndex === storySteps.length - 1;
     selectArea(area, area._btn, { shrine: step.shrine });
+  }
+
+  function showQuizQuestion() {
+    const question = quizQuestions[quizIndex];
+    quizAnswered = false;
+    quizQuestion.textContent = question.question;
+    quizResult.textContent = '';
+    quizNext.hidden = true;
+    quizChoices.replaceChildren();
+
+    question.choices.forEach(choice => {
+      const button = document.createElement('button');
+      button.textContent = choice;
+      button.onclick = () => answerQuiz(choice);
+      quizChoices.appendChild(button);
+    });
+  }
+
+  function answerQuiz(choice) {
+    if (quizAnswered || quizBox.hidden) return;
+    quizAnswered = true;
+    const question = quizQuestions[quizIndex];
+    const correct = choice === question.answer;
+    if (correct) quizScore++;
+
+    quizChoices.querySelectorAll('button').forEach(button => {
+      button.disabled = true;
+    });
+
+    const area = stats.areas.find(a => a.id === question.areaId);
+    selectArea(area, area._btn);
+
+    if (quizIndex === quizQuestions.length - 1) {
+      quizResult.textContent = `${correct ? 'あたり' : 'はずれ'}。${question.result} 3問中${quizScore}問正解でした。予想と比べると、街の姿はどう見えましたか。`;
+      quizNext.hidden = true;
+    } else {
+      quizResult.textContent = `${correct ? 'あたり' : 'はずれ'}。${question.result} 現在${quizScore}問正解です。`;
+      quizNext.hidden = false;
+    }
+  }
+
+  function buildBiasPanel() {
+    biasContent.innerHTML = `
+      <h2>データの見方：物差しの偏り</h2>
+      <p>同じ物差しで測っても、データの集まり方には偏りがあります。この作品では、その偏りも隠さずに見せます。</p>
+      <h3>登録数の偏り</h3>
+      <p>登録施設の数は、哲学の道190件からソーホー6,219件まで、約33倍の開きがあります。件数の多さは街の規模そのものではなく、地図データへの登録の手厚さも映しています。だから割合（%）で比べています。</p>
+      <h3>分類の偏り（実例）</h3>
+      <p>世界共通の分類は、日本の施設に合わないことがあります。哲学の道の「宗教」15件のうち、少なくとも3件（大豊神社 御旅所、Otoyo Shrine、霊鑑寺）は、神社や寺院なのに「キリスト教の礼拝施設（christian_place_of_worship）」に分類されていました。</p>
+      <button id="biasShrine">大豊神社の場所を見る</button>
+      <h3>抽出の条件</h3>
+      <p>施設が地区の四角形に入るかは、施設の範囲の左下の角で判定しています。信頼度0.6以上の施設だけを使っています。分類は Overture Maps の世界共通の分類表によるもので、例外の対応づけは制作記に書きました。</p>
+      <p>同じ物差しは強力です。でも、物差し自体の偏りも一緒に見えます。両方を見て街を読むのが、この作品の立場です。</p>`;
+
+    document.getElementById('biasShrine').onclick = () => {
+      const area = stats.areas.find(a => a.id === 'kyoto_tetsugaku');
+      selectArea(area, area._btn, { shrine: true });
+    };
   }
 
   stats.areas.forEach(area => {
@@ -338,6 +450,8 @@
   };
 
   storyBtn.onclick = () => {
+    endQuiz();
+    endBias();
     storyActive = true;
     storyIndex = 0;
     storyBox.hidden = false;
@@ -361,6 +475,32 @@
     selectArea(selectedArea, selectedArea._btn);
     map.flyTo({ center: selectedArea.center, zoom: 15, duration: 800 });
   };
+
+  quizBtn.onclick = () => {
+    endStory();
+    endBias();
+    quizIndex = 0;
+    quizScore = 0;
+    quizBox.hidden = false;
+    showQuizQuestion();
+  };
+
+  quizNext.onclick = () => {
+    if (!quizAnswered || quizIndex >= quizQuestions.length - 1) return;
+    quizIndex++;
+    showQuizQuestion();
+  };
+
+  quizEnd.onclick = endQuiz;
+
+  biasBtn.onclick = () => {
+    endStory();
+    endQuiz();
+    buildBiasPanel();
+    biasBox.hidden = false;
+  };
+
+  biasEnd.onclick = endBias;
 
   document.getElementById('legend').innerHTML = stats.groups
     .map(g => `<li><span style="background:${g.color}"></span>${g.name}</li>`).join('');
