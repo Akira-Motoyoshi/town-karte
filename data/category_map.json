@@ -1,13 +1,37 @@
 {
   "groups": [
-    {"name": "飲食", "color": "#E69F00"},
-    {"name": "買い物", "color": "#56B4E9"},
-    {"name": "宿泊", "color": "#009E73"},
-    {"name": "宗教", "color": "#D55E00"},
-    {"name": "文化・観光", "color": "#CC79A7"},
-    {"name": "公共・教育・医療", "color": "#0072B2"},
-    {"name": "生活サービス", "color": "#B8A200"},
-    {"name": "その他", "color": "#999999"}
+    {
+      "name": "飲食",
+      "color": "#FF8C42"
+    },
+    {
+      "name": "買い物",
+      "color": "#FFD23F"
+    },
+    {
+      "name": "宿泊",
+      "color": "#3EC1F3"
+    },
+    {
+      "name": "宗教",
+      "color": "#FF6FA5"
+    },
+    {
+      "name": "文化・観光",
+      "color": "#B388FF"
+    },
+    {
+      "name": "公共・教育・医療",
+      "color": "#4FE3C1"
+    },
+    {
+      "name": "生活サービス",
+      "color": "#7BD88F"
+    },
+    {
+      "name": "その他",
+      "color": "#8A97A5"
+    }
   ],
   "level2": {
     "cultural_and_historic/place_of_worship": "宗教",

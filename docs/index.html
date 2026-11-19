@@ -3,29 +3,34 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>世界の街カルテ比較</title>
+<title>街のカルテ | town-karte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="app">
   <aside class="panel">
-    <h1>世界の街カルテ比較</h1>
-    <p class="lead">世界の街を、同じ物差しで測る実験です。国が違っても同じ分類で数えると、街の個性が見えてきます。そして、物差し自体の偏りも。地区を選ぶと、その街の『カルテ』が出ます。</p>
-    <div>
+    <h1>街のカルテ</h1>
+    <p class="sub">town-karte — 世界の街を、同じ物差しで測る</p>
+    <p class="lead">世界の5つの街を、同じ分類で数えた記録です。地区を選ぶと、その街のカルテが出ます。数え方をそろえると個性が見える。物差しの偏りも、一緒に見えてきます。</p>
+    <div class="discovery">
       <strong>同じ1km四方でも、街の表情は違う。</strong>
-      <p>難波は飲食57%<br>バンコク旧市街は宿泊14%<br>ソーホーは生活サービス48%<br><small>いずれも登録施設の構成比</small></p>
+      <p>難波は飲食が57%<br>バンコク・旧市街は宿泊が14%<br>ソーホーは生活サービスが48%<br><small>登録施設の構成比</small></p>
     </div>
     <div class="buttons" id="areaButtons"></div>
-    <button class="compare" id="compareBtn">全地区を比較</button>
-    <button class="story" id="storyBtn">物語モード：5つの街と1つの気づき</button>
-    <button class="story" id="quizBtn">予想クイズ：先に予想してみる</button>
-    <button class="story" id="biasBtn">データの見方：物差しの偏り</button>
+    <button class="compare" id="compareBtn">5地区を比べる</button>
+    <button class="story" id="storyBtn">物語で巡る（5つの街と1つの気づき）</button>
+    <button class="story" id="quizBtn">予想クイズ（先に予想してみる）</button>
+    <button class="story" id="biasBtn">物差しの偏り（データの見方）</button>
 
     <div class="story-box" id="storyBox" hidden>
       <p id="storyText"></p>
       <div class="story-controls">
         <span id="storyProgress"></span>
+        <span class="story-dots" id="storyDots"></span>
         <button id="storyBack">戻る</button>
         <button id="storyNext">次へ</button>
         <button id="storyEnd">おわる</button>
@@ -47,7 +52,7 @@
       <button id="biasEnd">閉じる</button>
     </div>
 
-    <p class="lead"><a href="article/">制作記（どう作ったか）を読む →</a></p>
+    <p class="lead"><a href="article/">制作記（どう作ったか）を読む</a></p>
     <div class="summary" id="summary"></div>
     <div class="chart-wrap" id="chartWrap"><canvas id="chart"></canvas></div>
     <ul class="legend" id="legend"></ul>

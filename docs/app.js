@@ -24,46 +24,46 @@
   const first = stats.areas[0];
 
   const findings = {
-    kyoto_tetsugaku: '宗教が8%で、5地区の中で最も多い。寺社の集まる地区の姿が、データにも表れている',
-    osaka_namba: '飲食が57%を占める。酒類を出す店が666件あり、繁華街の性格がはっきり出ている',
-    paris_montmartre: '買い物が25%で、5地区の中で最も高い。観光で訪れる人のための店が集まっている',
-    bangkok_oldtown: '宿泊が14%で、他の地区（1〜4%）の3倍以上。寺院を巡る旅の宿が集まっている',
-    nyc_soho: '生活サービスが48%。士業やオフィス、不動産など、事業所の顔が強い',
+    kyoto_tetsugaku: '宗教が8%、5地区でいちばん高い。寺社が集まる地区の姿が、そのまま数字に出ている',
+    osaka_namba: '飲食が57%。酒類を出す店が666件。繁華街の性格がはっきり出る',
+    paris_montmartre: '買い物が25%、5地区でいちばん高い割合。観光で訪れる人のための店が集まる',
+    bangkok_oldtown: '宿泊が14%、ほかの地区（1〜4%）の3倍以上。寺院を巡る旅の宿の街',
+    nyc_soho: '生活サービスが48%。士業やオフィス、不動産。住む街というより、事業所の街',
   };
 
   const storySteps = [
     {
       areaId: 'kyoto_tetsugaku',
-      text: '同じ1km四方を、同じ物差しで測ります。5つの街を順に巡り、最後に1つの気づきに出会います。',
+      text: '5つの街を、同じ物差しで測ります。順に巡って、最後にひとつ、引っかかるものを見せます。',
     },
     {
       areaId: 'kyoto_tetsugaku',
-      text: '京都・哲学の道。登録施設は190件と、5地区でいちばん少ない。でも宗教は8%で、いちばん多い。寺社の街の姿です。',
+      text: '京都・哲学の道。登録は190件、いちばん少ない。なのに宗教の割合は8%で、いちばん高い。寺社の街です。',
     },
     {
       areaId: 'osaka_namba',
-      text: '大阪・難波。飲食が57%。酒類を出す店だけで666件あります。食べることと飲むことに全振りした街です。',
+      text: '大阪・難波。飲食が57%。酒類を出す店だけで666件。食べる街、飲む街です。',
     },
     {
       areaId: 'paris_montmartre',
-      text: 'パリ・モンマルトル。買い物が25%で、5地区の中で最も高い。観光で訪れる人のための店が集まっています。',
+      text: 'パリ・モンマルトル。買い物が25%、5地区でいちばん高い割合です。訪れる人のための店が並びます。',
     },
     {
       areaId: 'bangkok_oldtown',
-      text: 'バンコク・旧市街。宿泊が14%。他の地区の3倍以上です。寺院を巡る旅の宿が集まる街です。',
+      text: 'バンコク・旧市街。宿泊が14%。ほかの地区の3倍を超えます。寺院を巡る旅の、寝場所の街。',
     },
     {
       areaId: 'nyc_soho',
-      text: 'ニューヨーク・ソーホー。生活サービスが48%。士業やオフィス、不動産――店の街というより、事業所の街です。',
+      text: 'ニューヨーク・ソーホー。生活サービスが48%。士業、オフィス、不動産。店の街というより、事業所の街です。',
     },
     {
       areaId: 'kyoto_tetsugaku',
-      text: '最後に、京都へ戻ります。哲学の道にある大豊神社。日本の神社です。でもデータの中では『キリスト教の礼拝施設』に分類されていました。',
+      text: '最後は京都に戻ります。哲学の道の大豊神社。日本の神社です。でもデータの中では『キリスト教の礼拝施設』でした。',
       shrine: true,
     },
     {
       areaId: 'kyoto_tetsugaku',
-      text: '世界共通の分類は、街を比べる強い物差しです。でも、その物差し自体にも偏りがあります。両方見えることが、この作品の狙いです。',
+      text: '世界共通の分類は、街を比べる強い物差しです。でも物差し自体に偏りがある。両方見えるようにしたのが、この作品です。',
     },
   ];
 
@@ -101,11 +101,14 @@
 
   const map = new maplibregl.Map({
     container: 'map',
-    style: 'https://tiles.openfreemap.org/styles/liberty',
+    style: 'https://tiles.openfreemap.org/styles/dark',
     center: first.center,
     zoom: 15,
   });
   map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+  Chart.defaults.color = '#93A3B4';
+  Chart.defaults.borderColor = 'rgba(233,238,243,0.08)';
 
   let chart;
   let popup;
@@ -128,6 +131,7 @@
   const storyBox = document.getElementById('storyBox');
   const storyText = document.getElementById('storyText');
   const storyProgress = document.getElementById('storyProgress');
+  const storyDots = document.getElementById('storyDots');
   const storyBack = document.getElementById('storyBack');
   const storyNext = document.getElementById('storyNext');
   const storyEnd = document.getElementById('storyEnd');
@@ -154,7 +158,7 @@
         paint: {
           'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 2, 16, 5, 18, 8],
           'circle-color': ['match', ['get', 'group'], ...groupNames.flatMap(n => [n, colors[n]]), '#999'],
-          'circle-stroke-color': '#fff', 'circle-stroke-width': 1,
+          'circle-stroke-color': '#0C1218', 'circle-stroke-width': 1.2,
         },
       });
       map.on('click', 'places', e => {
@@ -363,6 +367,11 @@
     storyVersion++;
     storyText.textContent = step.text;
     storyProgress.textContent = `${storyIndex + 1}/${storySteps.length}`;
+    storyDots.replaceChildren(...storySteps.map((_, index) => {
+      const dot = document.createElement('span');
+      if (index === storyIndex) dot.classList.add('on');
+      return dot;
+    }));
     storyBack.disabled = storyIndex === 0;
     storyNext.disabled = storyIndex === storySteps.length - 1;
     selectArea(area, area._btn, { shrine: step.shrine });
@@ -379,19 +388,22 @@
     question.choices.forEach(choice => {
       const button = document.createElement('button');
       button.textContent = choice;
-      button.onclick = () => answerQuiz(choice);
+      button.dataset.choice = choice;
+      button.onclick = () => answerQuiz(choice, button);
       quizChoices.appendChild(button);
     });
   }
 
-  function answerQuiz(choice) {
+  function answerQuiz(choice, selectedButton) {
     if (quizAnswered || quizBox.hidden) return;
     quizAnswered = true;
     const question = quizQuestions[quizIndex];
     const correct = choice === question.answer;
     if (correct) quizScore++;
 
+    selectedButton.classList.add(correct ? 'correct' : 'wrong');
     quizChoices.querySelectorAll('button').forEach(button => {
+      if (button.dataset.choice === question.answer) button.classList.add('correct');
       button.disabled = true;
     });
 
@@ -410,15 +422,15 @@
   function buildBiasPanel() {
     biasContent.innerHTML = `
       <h2>データの見方：物差しの偏り</h2>
-      <p>同じ物差しで測っても、データの集まり方には偏りがあります。この作品では、その偏りも隠さずに見せます。</p>
+      <p>同じ物差しで測っても、データの集まり方には偏りがある。この作品では、偏りの方も隠さず置いておく。</p>
       <h3>登録数の偏り</h3>
-      <p>登録施設の数は、哲学の道190件からソーホー6,219件まで、約33倍の開きがあります。件数の多さは街の規模そのものではなく、地図データへの登録の手厚さも映しています。だから割合（%）で比べています。</p>
+      <p>登録施設は、哲学の道の190件からソーホーの6,219件まで、約33倍の開きがある。件数の多さは街の規模だけでは決まらない。地図データへの登録の手厚さも映している。だから比べるときは割合（%）を使う。</p>
       <h3>分類の偏り（実例）</h3>
-      <p>世界共通の分類は、日本の施設に合わないことがあります。哲学の道の「宗教」15件のうち、少なくとも3件（大豊神社 御旅所、Otoyo Shrine、霊鑑寺）は、神社や寺院なのに「キリスト教の礼拝施設（christian_place_of_worship）」に分類されていました。</p>
+      <p>世界共通の分類は、日本の施設に合わないことがある。哲学の道の「宗教」15件のうち少なくとも3件、大豊神社 御旅所、Otoyo Shrine、霊鑑寺は、神社と寺なのに「キリスト教の礼拝施設（christian_place_of_worship）」に入っていた。</p>
       <button id="biasShrine">大豊神社の場所を見る</button>
       <h3>抽出の条件</h3>
-      <p>施設が地区の四角形に入るかは、施設の範囲の左下の角で判定しています。信頼度0.6以上の施設だけを使っています。分類は Overture Maps の世界共通の分類表によるもので、例外の対応づけは制作記に書きました。</p>
-      <p>同じ物差しは強力です。でも、物差し自体の偏りも一緒に見えます。両方を見て街を読むのが、この作品の立場です。</p>`;
+      <p>施設が地区の四角形に入るかは、施設の範囲の左下の角で判定している。使うのは信頼度0.6以上。分類は Overture Maps の世界共通の分類表に沿い、例外の対応づけは制作記に書いた。</p>
+      <p>物差しをそろえるのは強力だ。ただ、物差し自体の偏りも一緒についてくる。両方を見て街を読むのが、この作品の立場です。</p>`;
 
     document.getElementById('biasShrine').onclick = () => {
       const area = stats.areas.find(a => a.id === 'kyoto_tetsugaku');
@@ -428,7 +440,12 @@
 
   stats.areas.forEach(area => {
     const b = document.createElement('button');
-    b.textContent = area.name;
+    const name = document.createElement('span');
+    const count = document.createElement('span');
+    name.textContent = area.name;
+    count.className = 'count';
+    count.textContent = area.total.toLocaleString();
+    b.append(name, count);
     b.onclick = () => {
       endStory();
       selectArea(area, b);

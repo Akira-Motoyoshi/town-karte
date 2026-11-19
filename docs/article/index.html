@@ -5,11 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>世界の街カルテ 制作記</title>
 <meta name="description" content="Overture Maps の places データで世界 5 地区を比べる Web 地図を作った過程">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
-:root{--fg:#1f2328;--muted:#59636e;--line:#d1d9e0;--bg:#fff;--code:#f6f8fa;--link:#0969da}
-@media (prefers-color-scheme:dark){:root{--fg:#e6edf3;--muted:#9198a1;--line:#3d444d;--bg:#0d1117;--code:#151b23;--link:#4493f8}}
+:root{--fg:#E9EEF3;--muted:#93A3B4;--line:rgba(233,238,243,0.14);--bg:#0C1218;--code:#141E29;--link:#FFB454}
+@media (prefers-color-scheme:light){:root{--fg:#1f2328;--muted:#59636e;--line:#d1d9e0;--bg:#fff;--code:#f6f8fa;--link:#0969da}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.85 system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif}
+body{margin:0;background:var(--bg);color:var(--fg);font:500 17px/1.85 "Zen Kaku Gothic New",system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;font-variant-numeric:tabular-nums}
 main{max-width:760px;margin:0 auto;padding:40px 16px 80px}
 h1{font-size:30px;line-height:1.4;margin:0 0 24px}
 h2{font-size:23px;margin:48px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
