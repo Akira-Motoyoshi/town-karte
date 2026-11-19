@@ -218,12 +218,15 @@
           'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 1.2,
         },
       });
-      map.on('click', 'clusters', e => {
-        const clusterId = e.features[0].properties.cluster_id;
-        map.getSource('places').getClusterExpansionZoom(clusterId, (err, zoom) => {
-          if (err) return;
-          map.easeTo({ center: e.lngLat, zoom });
-        });
+      map.on('click', 'clusters', async e => {
+        const feature = e.features[0];
+        const center = feature.geometry.coordinates;
+        let target = Math.min(map.getZoom() + 2, 18);
+        try {
+          const zoom = await map.getSource('places').getClusterExpansionZoom(feature.properties.cluster_id);
+          if (typeof zoom === 'number') target = zoom;
+        } catch (_) { /* 取得できなければ2段階ズームで代替 */ }
+        map.easeTo({ center, zoom: target });
       });
       map.on('mouseenter', 'clusters', () => map.getCanvas().style.cursor = 'pointer');
       map.on('mouseleave', 'clusters', () => map.getCanvas().style.cursor = '');
@@ -287,6 +290,35 @@
       },
     };
   }
+
+  const segmentLabelPlugin = {
+    id: 'segmentLabels',
+    afterDatasetsDraw(chart) {
+      try {
+        const { ctx } = chart;
+        chart.data.datasets.forEach((ds, di) => {
+          const meta = chart.getDatasetMeta(di);
+          meta.data.forEach((bar, i) => {
+            const v = ds.data[i];
+            if (!v || v < 7) return;
+            const { x, y, base } = bar.getProps(['x', 'y', 'base'], true);
+            const w = x - base;
+            if (w < 30) return;
+            const hex = colors[ds.label] || '#999999';
+            const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+            const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+            ctx.save();
+            ctx.fillStyle = lum > 0.55 ? 'rgba(12,18,24,.9)' : 'rgba(255,255,255,.92)';
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`${v.toFixed(0)}%`, base + w / 2, y);
+            ctx.restore();
+          });
+        });
+      } catch (_) { /* ラベル描画の失敗でグラフ自体を止めない */ }
+    },
+  };
 
   function drawCompareChart() {
     chart?.destroy();
