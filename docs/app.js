@@ -350,6 +350,8 @@
         },
       },
     });
+    const created = chart;
+    requestAnimationFrame(() => { if (chart === created) chart?.resize(); });
   }
 
   function setActive(btn) {
