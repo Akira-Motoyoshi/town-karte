@@ -23,6 +23,50 @@
   const groupNames = stats.groups.map(g => g.name);
   const first = stats.areas[0];
 
+  const findings = {
+    kyoto_tetsugaku: '宗教が8%で、5地区の中で最も多い。寺社の集まる地区の姿が、データにも表れている',
+    osaka_namba: '飲食が57%を占める。酒類を出す店が666件あり、繁華街の性格がはっきり出ている',
+    paris_montmartre: '買い物が25%で最も多い。観光で訪れる人のための店が集まっている',
+    bangkok_oldtown: '宿泊が14%で、他の地区（1〜4%）の3倍以上。寺院を巡る旅の宿が集まっている',
+    nyc_soho: '生活サービスが48%。士業やオフィス、不動産など、事業所の顔が強い',
+  };
+
+  const storySteps = [
+    {
+      areaId: 'kyoto_tetsugaku',
+      text: '同じ1km四方を、同じ物差しで測ります。5つの街を順に巡り、最後に1つの気づきに出会います。',
+    },
+    {
+      areaId: 'kyoto_tetsugaku',
+      text: '京都・哲学の道。登録施設は190件と、5地区でいちばん少ない。でも宗教は8%で、いちばん多い。寺社の街の姿です。',
+    },
+    {
+      areaId: 'osaka_namba',
+      text: '大阪・難波。飲食が57%。酒類を出す店だけで666件あります。食べることと飲むことに全振りした街です。',
+    },
+    {
+      areaId: 'paris_montmartre',
+      text: 'パリ・モンマルトル。買い物が25%で最多。観光で訪れる人のための店が集まっています。',
+    },
+    {
+      areaId: 'bangkok_oldtown',
+      text: 'バンコク・旧市街。宿泊が14%。他の地区の3倍以上です。寺院を巡る旅の宿が集まる街です。',
+    },
+    {
+      areaId: 'nyc_soho',
+      text: 'ニューヨーク・ソーホー。生活サービスが48%。士業やオフィス、不動産――店の街というより、事業所の街です。',
+    },
+    {
+      areaId: 'kyoto_tetsugaku',
+      text: '最後に、京都へ戻ります。哲学の道にある大豊神社。日本の神社です。でもデータの中では『キリスト教の礼拝施設』に分類されていました。',
+      shrine: true,
+    },
+    {
+      areaId: 'kyoto_tetsugaku',
+      text: '世界共通の分類は、街を比べる強い物差しです。でも、その物差し自体にも偏りがあります。両方見えることが、この作品の狙いです。',
+    },
+  ];
+
   const map = new maplibregl.Map({
     container: 'map',
     style: 'https://tiles.openfreemap.org/styles/liberty',
@@ -36,8 +80,23 @@
   let selection = 0;
   let selectedArea = first;
   let comparing = false;
+  let storyActive = false;
+  let storyIndex = 0;
+  let storyVersion = 0;
+  let pinnedGroup = null;
+  let hoveredGroup = null;
   const placesCache = {};
   const ctx = document.getElementById('chart');
+  const buttons = document.getElementById('areaButtons');
+  const compareBtn = document.getElementById('compareBtn');
+  const storyBtn = document.getElementById('storyBtn');
+  const storyBox = document.getElementById('storyBox');
+  const storyText = document.getElementById('storyText');
+  const storyProgress = document.getElementById('storyProgress');
+  const storyBack = document.getElementById('storyBack');
+  const storyNext = document.getElementById('storyNext');
+  const storyEnd = document.getElementById('storyEnd');
+
   const mapReady = new Promise(resolve => {
     map.on('load', () => {
       map.addSource('places', {
@@ -56,17 +115,59 @@
         popup?.remove();
         const p = e.features[0].properties;
         popup = new maplibregl.Popup().setLngLat(e.lngLat)
-          .setHTML(`<strong>${escapeHtml(p.name || '（名称なし）')}</strong><br>${p.group} / ${escapeHtml(p.category)}`)
+          .setHTML(`<strong>${escapeHtml(p.name || '（名称なし）')}</strong><br>${escapeHtml(p.group)} / ${escapeHtml(p.category)}`)
           .addTo(map);
       });
       map.on('mouseenter', 'places', () => map.getCanvas().style.cursor = 'pointer');
       map.on('mouseleave', 'places', () => map.getCanvas().style.cursor = '');
+      updateMapHighlight();
       resolve();
     });
   });
 
+  function updateMapHighlight() {
+    if (!map.getLayer('places')) return;
+    const group = hoveredGroup || pinnedGroup;
+    const opacity = group
+      ? ['case', ['==', ['get', 'group'], group], 1, 0.08]
+      : 1;
+    map.setPaintProperty('places', 'circle-opacity', opacity);
+    map.setPaintProperty('places', 'circle-stroke-opacity', opacity);
+  }
+
+  function clearChartHighlight() {
+    pinnedGroup = null;
+    hoveredGroup = null;
+    updateMapHighlight();
+  }
+
+  function chartInteraction(isCompare) {
+    function groupAt(elements, chartInstance) {
+      if (!elements.length) return null;
+      const element = elements[0];
+      return isCompare
+        ? chartInstance.data.datasets[element.datasetIndex].label
+        : chartInstance.data.labels[element.index];
+    }
+
+    return {
+      onHover: (event, elements, chartInstance) => {
+        hoveredGroup = groupAt(elements, chartInstance);
+        updateMapHighlight();
+      },
+      onClick: (event, elements, chartInstance) => {
+        const group = groupAt(elements, chartInstance);
+        if (!group) return;
+        pinnedGroup = pinnedGroup === group ? null : group;
+        hoveredGroup = null;
+        updateMapHighlight();
+      },
+    };
+  }
+
   function drawAreaChart(area) {
     chart?.destroy();
+    clearChartHighlight();
     const top = [...area.groups].sort((a, b) => b.count - a.count)[0];
     ctx.setAttribute('role', 'img');
     ctx.setAttribute('aria-label', `${area.name}の施設の構成比。総数${area.total.toLocaleString()}件、最多は${top.name}${(top.share * 100).toFixed(0)}%`);
@@ -82,7 +183,8 @@
         }],
       },
       options: {
-        indexAxis: 'y', maintainAspectRatio: false, animation: false,
+        indexAxis: 'y', maintainAspectRatio: false, animation: false, interaction: { mode: 'nearest', intersect: true },
+        ...chartInteraction(false),
         plugins: {
           legend: { display: false },
           tooltip: { callbacks: { label: c => `${c.raw.toFixed(1)}%（${c.dataset.counts[c.dataIndex]} 件）` } },
@@ -94,6 +196,7 @@
 
   function drawCompareChart() {
     chart?.destroy();
+    clearChartHighlight();
     ctx.setAttribute('role', 'img');
     ctx.setAttribute('aria-label', '5地区の施設の構成比の比較');
     document.getElementById('chartWrap').style.height = '340px';
@@ -108,7 +211,8 @@
         })),
       },
       options: {
-        indexAxis: 'y', maintainAspectRatio: false, animation: false,
+        indexAxis: 'y', maintainAspectRatio: false, animation: false, interaction: { mode: 'nearest', intersect: true },
+        ...chartInteraction(true),
         plugins: {
           legend: { display: false },
           tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.raw.toFixed(1)}%` } },
@@ -120,9 +224,6 @@
       },
     });
   }
-
-  const buttons = document.getElementById('areaButtons');
-  const compareBtn = document.getElementById('compareBtn');
 
   function setActive(btn) {
     document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
@@ -138,7 +239,7 @@
     return places;
   }
 
-  async function selectArea(area, btn) {
+  async function selectArea(area, btn, options = {}) {
     popup?.remove();
     const currentSelection = ++selection;
     selectedArea = area;
@@ -146,16 +247,43 @@
     setActive(btn);
     summary.classList.remove('error');
     const top = [...area.groups].sort((a, b) => b.count - a.count)[0];
-    summary.innerHTML = `<strong>${area.name}</strong><br>総件数 ${area.total.toLocaleString()} 件 ・ 最多は「${top.name}」${(top.share * 100).toFixed(0)}%`;
+    summary.innerHTML = `
+      <div class="karte">
+        <strong>${escapeHtml(area.name)}のカルテ</strong>
+        <div class="karte-row"><span>登録施設</span><span>${area.total.toLocaleString()}件</span></div>
+        <div class="karte-row"><span>最多の分類</span><span>${escapeHtml(top.name)} ${(top.share * 100).toFixed(0)}%</span></div>
+        <p class="karte-finding">所見：${escapeHtml(findings[area.id] || '')}</p>
+      </div>`;
     drawAreaChart(area);
     mapLoading.hidden = false;
-    map.flyTo({ center: area.center, zoom: 15, duration: 1200 });
+    map.flyTo({
+      center: options.shrine ? [135.794361, 35.018761] : area.center,
+      zoom: options.shrine ? 17 : 15,
+      duration: 1200,
+    });
 
     try {
       const places = await loadPlaces(area);
       await mapReady;
       if (currentSelection !== selection) return;
       map.getSource('places').setData(places);
+
+      if (options.shrine) {
+        const feature = places.features.find(f => {
+          const p = f.properties || {};
+          return p.name === '大豊神社 御旅所';
+        });
+        const p = feature?.properties || {
+          name: '大豊神社 御旅所',
+          group: '宗教',
+          category: 'christian_place_of_worship',
+        };
+        popup = new maplibregl.Popup()
+          .setLngLat([135.794361, 35.018761])
+          .setHTML(`<strong>${escapeHtml(p.name || '（名称なし）')}</strong><br>${escapeHtml(p.group)} / ${escapeHtml(p.category)}`)
+          .addTo(map);
+      }
+
       map.once('idle', () => {
         if (currentSelection === selection) mapLoading.hidden = true;
       });
@@ -164,15 +292,36 @@
     }
   }
 
-  stats.areas.forEach((area, i) => {
+  function endStory() {
+    storyActive = false;
+    storyVersion++;
+    storyBox.hidden = true;
+  }
+
+  function showStoryStep() {
+    const step = storySteps[storyIndex];
+    const area = stats.areas.find(a => a.id === step.areaId);
+    storyVersion++;
+    storyText.textContent = step.text;
+    storyProgress.textContent = `${storyIndex + 1}/${storySteps.length}`;
+    storyBack.disabled = storyIndex === 0;
+    storyNext.disabled = storyIndex === storySteps.length - 1;
+    selectArea(area, area._btn, { shrine: step.shrine });
+  }
+
+  stats.areas.forEach(area => {
     const b = document.createElement('button');
     b.textContent = area.name;
-    b.onclick = () => selectArea(area, b);
+    b.onclick = () => {
+      endStory();
+      selectArea(area, b);
+    };
     buttons.appendChild(b);
-    if (i === 0) area._btn = b;
+    area._btn = b;
   });
 
   compareBtn.onclick = () => {
+    endStory();
     popup?.remove();
     comparing = true;
     setActive(compareBtn);
@@ -181,6 +330,30 @@
       stats.areas.map(a => `${a.name} ${a.total.toLocaleString()} 件`).join('<br>') +
       `<br>地図は${selectedArea.name}の施設を表示しています`;
     drawCompareChart();
+  };
+
+  storyBtn.onclick = () => {
+    storyActive = true;
+    storyIndex = 0;
+    storyBox.hidden = false;
+    showStoryStep();
+  };
+
+  storyBack.onclick = () => {
+    if (!storyActive || storyIndex === 0) return;
+    storyIndex--;
+    showStoryStep();
+  };
+
+  storyNext.onclick = () => {
+    if (!storyActive || storyIndex === storySteps.length - 1) return;
+    storyIndex++;
+    showStoryStep();
+  };
+
+  storyEnd.onclick = () => {
+    endStory();
+    selectArea(selectedArea, selectedArea._btn);
   };
 
   document.getElementById('legend').innerHTML = stats.groups

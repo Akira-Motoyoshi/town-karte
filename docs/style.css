@@ -13,9 +13,19 @@ button { font: inherit; font-size: 13px; min-height: 44px; padding: 6px 10px; bo
 button:hover { background: #f3f4f6; }
 button.active { background: #1f2328; color: #fff; border-color: #1f2328; font-weight: bold; }
 button:focus-visible { outline: 2px solid #0969da; outline-offset: 2px; }
-.compare { width: 100%; margin-bottom: 16px; }
+button:disabled { opacity: 0.5; cursor: default; }
+.compare, .story { width: 100%; margin-bottom: 16px; }
+.story-box { padding: 12px; margin-bottom: 16px; border: 1px solid #ddd; border-radius: 6px; background: #f8f9fa; font-size: 13px; line-height: 1.6; }
+.story-box[hidden] { display: none; }
+.story-box p { margin: 0 0 10px; }
+.story-controls { display: flex; align-items: center; gap: 6px; }
+.story-controls span { margin-right: auto; }
 .summary { font-size: 14px; margin-bottom: 8px; }
 .summary strong { font-size: 18px; }
+.karte { border: 1px solid #ddd; border-radius: 6px; padding: 12px; }
+.karte strong { display: block; margin-bottom: 8px; }
+.karte-row { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-top: 1px solid #eee; }
+.karte-finding { margin: 8px 0 0; font-size: 12px; line-height: 1.6; }
 .error { color: #b42318; font-size: 13px; }
 .chart-wrap { position: relative; height: 300px; }
 .legend { list-style: none; padding: 0; margin: 12px 0; display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; }
