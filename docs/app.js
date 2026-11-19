@@ -315,6 +315,9 @@
       center: options.shrine ? [135.794361, 35.018761] : area.center,
       zoom: options.shrine ? 17 : 15,
       duration: 1200,
+      ...(options.shrine && window.innerWidth > 760
+        ? { padding: { left: 410, top: 0, right: 0, bottom: 0 } }
+        : {}),
     });
 
     try {
