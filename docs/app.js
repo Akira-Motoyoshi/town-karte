@@ -26,7 +26,7 @@
   const findings = {
     kyoto_tetsugaku: '宗教が8%で、5地区の中で最も多い。寺社の集まる地区の姿が、データにも表れている',
     osaka_namba: '飲食が57%を占める。酒類を出す店が666件あり、繁華街の性格がはっきり出ている',
-    paris_montmartre: '買い物が25%で最も多い。観光で訪れる人のための店が集まっている',
+    paris_montmartre: '買い物が25%で、5地区の中で最も高い。観光で訪れる人のための店が集まっている',
     bangkok_oldtown: '宿泊が14%で、他の地区（1〜4%）の3倍以上。寺院を巡る旅の宿が集まっている',
     nyc_soho: '生活サービスが48%。士業やオフィス、不動産など、事業所の顔が強い',
   };
@@ -46,7 +46,7 @@
     },
     {
       areaId: 'paris_montmartre',
-      text: 'パリ・モンマルトル。買い物が25%で最多。観光で訪れる人のための店が集まっています。',
+      text: 'パリ・モンマルトル。買い物が25%で、5地区の中で最も高い。観光で訪れる人のための店が集まっています。',
     },
     {
       areaId: 'bangkok_oldtown',
@@ -134,6 +134,11 @@
     map.setPaintProperty('places', 'circle-opacity', opacity);
     map.setPaintProperty('places', 'circle-stroke-opacity', opacity);
   }
+
+  ctx.addEventListener('mouseleave', () => {
+    hoveredGroup = null;
+    updateMapHighlight();
+  });
 
   function clearChartHighlight() {
     pinnedGroup = null;
@@ -354,6 +359,7 @@
   storyEnd.onclick = () => {
     endStory();
     selectArea(selectedArea, selectedArea._btn);
+    map.flyTo({ center: selectedArea.center, zoom: 15, duration: 800 });
   };
 
   document.getElementById('legend').innerHTML = stats.groups
