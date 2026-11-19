@@ -80,30 +80,30 @@ table{border-collapse:collapse;width:100%;font-size:15px} th,td{border:1px solid
 <p>次に DuckDB で places のスキーマを確認しました。計画段階では <code>categories</code> 列を使う想定でしたが、このリリースでは <code>basic_category</code> と <code>taxonomy</code>（<code>primary</code> と <code>hierarchy</code>）に変わっていました。最初に実データを確認したことで、手戻りを防げました。</p>
 <figure><img alt="places のスキーマ" loading="lazy" src="02_schema.jpg" /><figcaption>places のスキーマ</figcaption></figure>
 <h3>2. 1 地区で試す</h3>
-<p>京都・哲学の道の範囲で、<code>bbox</code> 列による絞り込みと <code>confidence &gt;= 0.6</code> を試しました。190 件が返り、<code>taxonomy.hierarchy</code> に「food_and_drink &gt; restaurant &gt; asian_restaurant &gt; ramen_restaurant」のような階層が入っていることが分かりました。</p>
+<p>京都・哲学の道の範囲で、<code>bbox</code> 列による絞り込みと <code>confidence &gt;= 0.6</code> を試しました。範囲内かどうかは、施設の <code>bbox</code> の左下隅（<code>xmin</code> / <code>ymin</code>）で判定しています。190 件が返り、<code>taxonomy.hierarchy</code> に「food_and_drink &gt; restaurant &gt; asian_restaurant &gt; ramen_restaurant」のような階層が入っていることが分かりました。</p>
 <figure><img alt="京都・哲学の道の POI" loading="lazy" src="03_kyoto.jpg" /><figcaption>京都・哲学の道の POI</figcaption></figure>
 <p>ここで 1 つつまずきました。DuckDB の初期設定のまま <code>s3://</code> で読むと、認証情報を探しに行って 5 分以上止まってしまいます。空のキーで匿名アクセスの設定（<code>CREATE SECRET</code>）をすると、約 13 秒で返るようになりました。</p>
 <h3>3. 5 地区を同じ SQL で取得する</h3>
 <p>地区の範囲を <code>areas.json</code> にまとめ、同じ SQL を 5 回当てるスクリプト <code>fetch.py</code> を作りました。世界のデータセット全体をダウンロードせず、必要な範囲だけを読むので、5 地区で約 20 秒です。</p>
 <figure><img alt="5 地区のデータ取得" loading="lazy" src="04_fetch.jpg" /><figcaption>5 地区のデータ取得</figcaption></figure>
 <h3>4. 8 つの大分類にまとめる</h3>
-<p>当初は、数百ある細かいカテゴリを LLM に 8 分類へ振り分けさせる予定でした。しかし <code>taxonomy.hierarchy</code> の 1 段目がすでに「food_and_drink」「shopping」「lodging」のような大分類になっていたため、その 1 段目（宗教だけは 2 段目の <code>place_of_worship</code>）を 8 分類に対応させる方式に変えました。対応表は十数行で済みました。</p>
+<p>当初は、数百ある細かいカテゴリを LLM に 8 分類へ振り分けさせる予定でした。しかし <code>taxonomy.hierarchy</code> の 1 段目がすでに「food_and_drink」「shopping」「lodging」のような大分類になっていたため、主にその 1 段目を 8 分類に対応させる方式に変えました。2 段目を優先する例外もあり、宗教のほか、<code>travel_service</code> は文化・観光、<code>spiritual_advising</code> は生活サービスに分類します。対応表は十数行で済みました。</p>
 <figure><img alt="大分類に集計" loading="lazy" src="05_build.jpg" /><figcaption>大分類に集計</figcaption></figure>
 <h3>5. 地図ページを作り、公開する</h3>
 <p>集計結果を GeoJSON と JSON に書き出し、MapLibre GL JS と Chart.js で静的なページを作りました。サーバーは使わず、GitHub Pages で公開しています。</p>
 <figure><img alt="データの流れ" loading="lazy" src="06_dataflow.png" /><figcaption>データの流れ</figcaption></figure>
-<p>実装は Claude Code に任せ、私は範囲の決定、分類方式の判断、結果の確認を担当しました。リポジトリ作成から Pages の有効化までも GitHub CLI 経由で自動化しています。</p>
+<p>実装は Claude Code に任せ、私は範囲の決定、分類方式の判断、結果の確認を担当しました。公開前に、元データから分類を再集計し、5 地区 × 8 分類の全件が公開データと一致することを確認しました。リポジトリ作成から Pages の有効化までも GitHub CLI 経由で自動化しています。</p>
 <h2>できたもの</h2>
 <p>地区のボタンを押すと地図がその場所へ移動し、POI が大分類の色で表示されます。左のグラフには、その地区の構成比が出ます。</p>
 <figure><img alt="京都・哲学の道の表示" loading="lazy" src="07_kyoto_page.jpg" /><figcaption>京都・哲学の道の表示</figcaption></figure>
 <p>「全地区を比較」を押すと、5 地区の構成比が積み上げ棒で並びます。</p>
 <figure><img alt="全地区の比較" loading="lazy" src="08_compare.jpg" /><figcaption>全地区の比較</figcaption></figure>
 <figure><img alt="バンコク・旧市街の表示" loading="lazy" src="09_bangkok.jpg" /><figcaption>バンコク・旧市街の表示</figcaption></figure>
-<p>比べてみると、街の性格がはっきり出ました。</p>
+<p>比べてみると、街の性格がはっきり出ました。以下はすべて登録施設の構成比で、実際の店舗数や活動量そのものではありません。</p>
 <ul>
 <li><strong>大阪・難波</strong>：飲食が 57% で最多。そのうち酒類を出す店が 666 件あり、全体の約 12% を占める</li>
 <li><strong>バンコク・旧市街</strong>：宿泊が 14% で、他の 4 地区（1〜4%）の 3 倍以上</li>
-<li><strong>ニューヨーク・ソーホー</strong>：生活サービスが 48%。中身は専門サービスやオフィス、不動産が中心で、店の街というより事業所の街だった</li>
+<li><strong>ニューヨーク・ソーホー</strong>：登録施設では生活サービスが 48% を占め、専門サービスやオフィス、不動産が中心だった</li>
 <li><strong>京都・哲学の道</strong>：宗教が 8% で 5 地区中最多</li>
 <li><strong>パリ・モンマルトル</strong>：買い物が 25% で最多</li>
 </ul>

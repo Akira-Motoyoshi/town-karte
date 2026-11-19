@@ -16,6 +16,7 @@
   map.addControl(new maplibregl.NavigationControl(), 'top-right');
 
   let chart;
+  let popup;
   const ctx = document.getElementById('chart');
 
   function drawAreaChart(area) {
@@ -79,6 +80,7 @@
   }
 
   function selectArea(area, btn) {
+    popup?.remove();
     setActive(btn);
     const top = [...area.groups].sort((a, b) => b.count - a.count)[0];
     summary.innerHTML = `<strong>${area.name}</strong><br>総件数 ${area.total.toLocaleString()} 件 ・ 最多は「${top.name}」${(top.share * 100).toFixed(0)}%`;
@@ -96,6 +98,7 @@
   });
 
   compareBtn.onclick = () => {
+    popup?.remove();
     setActive(compareBtn);
     summary.innerHTML = '<strong>全地区の比較</strong><br>' +
       stats.areas.map(a => `${a.name} ${a.total.toLocaleString()} 件`).join('<br>');
@@ -121,8 +124,9 @@
       },
     });
     map.on('click', 'places', e => {
+      popup?.remove();
       const p = e.features[0].properties;
-      new maplibregl.Popup().setLngLat(e.lngLat)
+      popup = new maplibregl.Popup().setLngLat(e.lngLat)
         .setHTML(`<strong>${escapeHtml(p.name || '（名称なし）')}</strong><br>${p.group} / ${escapeHtml(p.category)}`)
         .addTo(map);
     });

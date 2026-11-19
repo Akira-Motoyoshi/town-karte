@@ -11,6 +11,13 @@ def main():
     ap.add_argument("--force", action="store_true", help="既存ファイルがあっても再取得する")
     args = ap.parse_args()
 
+    release_file = ROOT / "data" / "raw" / "release.txt"
+    if release_file.exists():
+        existing_release = release_file.read_text().strip()
+        if existing_release != args.release and not args.force:
+            print(f"既存データのリリースは {existing_release} です。指定された {args.release} と違うため止めます。再取得する場合は --force を付けてください。")
+            raise SystemExit(1)
+
     con = duckdb.connect()
     con.sql("INSTALL spatial; LOAD spatial; INSTALL httpfs; LOAD httpfs;")
     # 空キーの secret で匿名アクセスにする（認証情報の探索で長時間止まるのを避ける）
@@ -20,6 +27,7 @@ def main():
     areas = json.loads((ROOT / "areas.json").read_text())
     out_dir = ROOT / "data" / "raw"
     out_dir.mkdir(parents=True, exist_ok=True)
+    fetched = False
     for a in areas:
         dest = out_dir / f"{a['id']}.parquet"
         if dest.exists() and not args.force:
@@ -38,9 +46,11 @@ def main():
                 AND confidence >= {args.min_confidence}
             ) TO '{dest}' (FORMAT parquet)
         """)
+        fetched = True
         n = con.sql(f"SELECT count(*) FROM '{dest}'").fetchone()[0]
         print(f"{a['id']}: {n} 件 ({time.time() - t:.0f}s)")
-    (out_dir / "release.txt").write_text(args.release)
+    if fetched or not release_file.exists():
+        release_file.write_text(args.release)
 
 if __name__ == "__main__":
     main()
